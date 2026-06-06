@@ -1304,7 +1304,7 @@ input::-webkit-inner-spin-button, input::-webkit-outer-spin-button { -webkit-app
             Meta
           </button>
         </div>
-        <div id="meta-summary-area"></div>
+        
         <div class="history-list" id="full-history-list"></div>
       </div>
     </div>
@@ -2015,7 +2015,7 @@ function calcGoalForEntry(e) {
   return { target, actual, pct, hit: actual >= target };
 }
 
-function renderMetaSummary() {
+function renderMetaSummary() { return; } function _renderMetaSummaryUnused() {
   const el = document.getElementById('meta-summary-area');
   if (!el) return;
   if (!state.meta) {
