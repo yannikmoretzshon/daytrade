@@ -1,0 +1,2147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Binary Vault</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@300;400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0e12;
+  --bg2: #13151b;
+  --bg3: #191c24;
+  --bg4: #1f2330;
+  --gold: #f0a843;
+  --gold2: #ffc570;
+  --gold3: #ffdfa0;
+  --gold-dim: rgba(240,168,67,0.15);
+  --gold-border: rgba(240,168,67,0.22);
+  --green: #34d399;
+  --green-dim: rgba(52,211,153,0.12);
+  --red: #f87171;
+  --red-dim: rgba(248,113,113,0.12);
+  --blue: #60a5fa;
+  --purple: #a78bfa;
+  --white: #eef0f6;
+  --white2: #9ea5bc;
+  --white3: #5a6180;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.04);
+  --nav-h: 68px;
+  --top-h: 80px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  color: var(--white);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+/* ── SCREENS ── */
+.screen { display:none; height:100%; flex-direction:column; position:fixed; inset:0; }
+.screen.active { display:flex; }
+#screen-main { display:none; }
+#screen-main.active { display:flex; }
+
+/* ══════════════════════════
+   ONBOARDING
+══════════════════════════ */
+#screen-onboard {
+  background: var(--bg);
+  align-items: center; justify-content: flex-start;
+  padding: calc(40px + var(--safe-top)) 24px calc(60px + var(--safe-bottom));
+  position: fixed; inset: 0;
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  flex-direction: column;
+}
+
+/* radial glow behind logo */
+#screen-onboard::before {
+  content:'';
+  position:absolute;
+  width:420px; height:420px;
+  background: radial-gradient(circle, rgba(240,168,67,0.09) 0%, transparent 70%);
+  top:-80px; left:50%; transform:translateX(-50%);
+  pointer-events:none;
+}
+
+.onboard-inner { width:100%; max-width:400px; z-index:1; margin:auto; }
+
+/* Logo */
+.vault-logo { text-align:center; margin-bottom:40px; }
+.vault-logo .logo-mark {
+  width:68px; height:68px;
+  background: linear-gradient(135deg, var(--bg3), var(--bg4));
+  border: 1.5px solid var(--gold-border);
+  border-radius:20px;
+  display:inline-flex; align-items:center; justify-content:center;
+  margin-bottom:18px;
+  box-shadow: 0 0 40px rgba(240,168,67,0.15), 0 8px 32px rgba(0,0,0,0.4);
+  position:relative;
+}
+.vault-logo .logo-mark::after {
+  content:'';
+  position:absolute; inset:0;
+  border-radius:20px;
+  background: linear-gradient(135deg, rgba(240,168,67,0.08) 0%, transparent 50%);
+}
+.vault-logo .logo-mark svg { width:32px; height:32px; position:relative; z-index:1; }
+.vault-logo h1 {
+  font-family:'Syne', sans-serif;
+  font-size:28px; font-weight:800;
+  letter-spacing:-0.5px;
+  color:var(--white);
+}
+.vault-logo h1 span { color:var(--gold); }
+.vault-logo p {
+  font-size:11px; letter-spacing:3px;
+  color:var(--white3); font-weight:400;
+  text-transform:uppercase; margin-top:6px;
+}
+
+/* Card */
+.onboard-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius:24px;
+  padding:28px 24px 32px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+}
+.onboard-card h2 {
+  font-family:'Syne', sans-serif;
+  font-size:20px; font-weight:700; color:var(--white);
+  margin-bottom:6px;
+}
+.onboard-card > p {
+  font-size:13px; color:var(--white3);
+  margin-bottom:28px; line-height:1.7; font-weight:400;
+}
+
+.field-label {
+  font-size:10px; letter-spacing:2px;
+  color:var(--gold); font-weight:600;
+  text-transform:uppercase; margin-bottom:8px;
+  display:block;
+}
+.field-group { margin-bottom:18px; }
+
+.input-wrap {
+  position:relative;
+  border: 1px solid var(--border);
+  border-radius:14px;
+  background: var(--bg3);
+  overflow:hidden;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.input-wrap:focus-within {
+  border-color: rgba(240,168,67,0.45);
+  box-shadow: 0 0 0 3px rgba(240,168,67,0.07);
+}
+.input-prefix {
+  position:absolute; left:16px; top:50%; transform:translateY(-50%);
+  font-family:'DM Mono', monospace;
+  font-size:14px; color:var(--gold);
+}
+input[type="text"], input[type="number"] {
+  width:100%; background:transparent;
+  border:none; outline:none;
+  color:var(--white); font-family:'Plus Jakarta Sans', sans-serif;
+  font-size:16px; padding:15px 16px 15px 40px;
+  -webkit-appearance:none;
+}
+input[type="number"] { -moz-appearance:textfield; }
+input::-webkit-inner-spin-button, input::-webkit-outer-spin-button { -webkit-appearance:none; }
+.name-input { padding-left:16px !important; }
+
+.btn-primary {
+  width:100%; padding:16px;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  border:none; border-radius:14px;
+  color:#0d0e12; font-family:'Plus Jakarta Sans', sans-serif;
+  font-size:14px; font-weight:700;
+  letter-spacing:0.5px;
+  cursor:pointer; margin-top:10px;
+  transition: all 0.25s;
+  position:relative; overflow:hidden;
+}
+.btn-primary::after {
+  content:''; position:absolute; inset:0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 55%);
+}
+.btn-primary:active { transform:scale(0.98); opacity:0.9; }
+
+/* ══════════════════════════
+   TOP BAR — LUXURY EDITION
+══════════════════════════ */
+.top-bar {
+  position: sticky; top:0; z-index:200;
+  height: calc(var(--top-h) + var(--safe-top));
+  padding-top: var(--safe-top);
+  background: linear-gradient(180deg, rgba(10,9,6,0.98) 0%, rgba(13,14,18,0.96) 100%);
+  backdrop-filter: blur(32px) saturate(1.4);
+  -webkit-backdrop-filter: blur(32px) saturate(1.4);
+  border-bottom: 1px solid rgba(240,168,67,0.12);
+  display: flex; align-items: center;
+  padding-left: 18px; padding-right: 18px;
+  gap: 12px;
+  flex-shrink: 0;
+  position: relative;
+  box-shadow: 0 1px 0 rgba(240,168,67,0.06), 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* linha dourada fina no topo */
+.top-bar::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:1.5px;
+  background: linear-gradient(90deg, transparent 0%, rgba(240,168,67,0.6) 30%, rgba(255,197,112,0.9) 50%, rgba(240,168,67,0.6) 70%, transparent 100%);
+  pointer-events:none;
+}
+
+/* brilho sutil atrás do nome */
+.top-bar::after {
+  content:'';
+  position:absolute; left:0; top:0; bottom:0; width:180px;
+  background: radial-gradient(ellipse at 20% 50%, rgba(240,168,67,0.05) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+.top-bar-left { flex:1; position:relative; z-index:1; }
+
+.top-greeting {
+  font-size:9px; letter-spacing:2.5px;
+  color:var(--gold); text-transform:uppercase; font-weight:600;
+  display:flex; align-items:center; gap:6px;
+  opacity: 0.75;
+}
+.top-greeting .dot {
+  width:5px; height:5px; border-radius:50%;
+  background:var(--green);
+  box-shadow: 0 0 6px rgba(52,211,153,0.9), 0 0 12px rgba(52,211,153,0.4);
+  animation: pulse-dot 2.5s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity:1; box-shadow:0 0 6px rgba(52,211,153,0.9), 0 0 12px rgba(52,211,153,0.4); }
+  50% { opacity:0.6; box-shadow:0 0 3px rgba(52,211,153,0.5); }
+}
+
+.top-name {
+  font-family:'Syne', sans-serif;
+  font-size: clamp(17px, 5vw, 22px); font-weight:800;
+  background: linear-gradient(135deg, #ffffff 0%, #e8d5a3 50%, var(--gold2) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-top:2px;
+  letter-spacing:-0.5px;
+  line-height:1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.top-badges { display:flex; align-items:center; gap:8px; position:relative; z-index:1; }
+
+.badge-pill {
+  display:flex; align-items:center; gap:5px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius:10px;
+  padding:6px 10px;
+  font-size:11px; font-weight:600; color:var(--white2);
+}
+.badge-pill .bp-icon { font-size:12px; }
+.badge-pill.gold {
+  border-color: rgba(240,168,67,0.4);
+  color:var(--gold);
+  background: linear-gradient(135deg, rgba(240,168,67,0.12), rgba(240,168,67,0.06));
+  box-shadow: 0 0 12px rgba(240,168,67,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+.badge-pill.green { border-color:rgba(52,211,153,0.25); color:var(--green); background:var(--green-dim); }
+
+.icon-btn {
+  width:42px; height:42px;
+  border: 1px solid rgba(240,168,67,0.2);
+  border-radius:14px;
+  background: linear-gradient(135deg, rgba(240,168,67,0.08), rgba(240,168,67,0.03));
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all 0.2s; flex-shrink:0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04);
+  position:relative; z-index:1;
+}
+.icon-btn:active { background:rgba(240,168,67,0.15); transform:scale(0.95); }
+.icon-btn svg { width:18px; height:18px; }
+
+/* Avatar monograma */
+.top-avatar {
+  width:40px; height:40px; border-radius:13px;
+  background: linear-gradient(135deg, rgba(240,168,67,0.25), rgba(240,168,67,0.1));
+  border: 1.5px solid rgba(240,168,67,0.4);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Syne', sans-serif;
+  font-size:16px; font-weight:800;
+  color:var(--gold);
+  flex-shrink:0;
+  box-shadow: 0 0 16px rgba(240,168,67,0.15), inset 0 1px 0 rgba(255,255,255,0.06);
+  text-transform:uppercase;
+  letter-spacing:0;
+  position:relative; z-index:1;
+}
+
+/* ══════════════════════════
+   MAIN LAYOUT
+══════════════════════════ */
+#screen-main {
+  background: var(--bg);
+  position: fixed; inset: 0;
+  display: flex; flex-direction: column;
+}
+
+.scroll-area {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  flex: 1;
+  overscroll-behavior-y: contain;
+  padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 20px);
+}
+
+/* ══════════════════════════
+   LEVEL / XP CARD
+══════════════════════════ */
+.hero-section { padding: 20px 16px 0; }
+
+.level-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 22px 20px;
+  position: relative; overflow:hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+.level-card::before {
+  content:'';
+  position:absolute; top:-60px; right:-40px;
+  width:180px; height:180px;
+  background: radial-gradient(circle, rgba(240,168,67,0.1) 0%, transparent 70%);
+  pointer-events:none;
+}
+
+.lc-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:16px; }
+.lc-label {
+  font-size:9px; letter-spacing:3px; color:var(--white3);
+  text-transform:uppercase; font-weight:600; margin-bottom:6px;
+}
+.lc-level-num {
+  font-family:'Syne', sans-serif;
+  font-size:42px; font-weight:800;
+  color:var(--gold); line-height:1;
+  letter-spacing:-2px;
+}
+.lc-rank {
+  font-size:13px; font-weight:500; color:var(--white2);
+  margin-top:4px;
+}
+
+/* Circular progress ring */
+.ring-wrap {
+  position:relative; width:70px; height:70px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center;
+}
+.ring-wrap svg { position:absolute; inset:0; transform:rotate(-90deg); }
+.ring-wrap svg circle { fill:none; }
+.ring-bg { stroke:rgba(255,255,255,0.07); stroke-width:5; }
+.ring-fg { stroke:var(--gold); stroke-width:5; stroke-linecap:round; transition:stroke-dashoffset 0.8s ease; }
+.ring-text {
+  font-family:'Syne', sans-serif;
+  font-size:14px; font-weight:700; color:var(--gold);
+  z-index:1;
+}
+
+.lc-progress-row {
+  display:flex; justify-content:space-between;
+  font-size:11px; color:var(--white3); font-weight:500;
+  margin-bottom:6px;
+}
+.lc-progress-row span:last-child { color:var(--white2); }
+.progress-bar {
+  height:4px; background:rgba(255,255,255,0.07);
+  border-radius:4px; overflow:hidden; margin-bottom:16px;
+}
+.progress-fill {
+  height:100%; border-radius:4px;
+  background: linear-gradient(90deg, var(--gold), var(--gold2));
+  transition: width 0.8s ease;
+}
+
+/* Stats row */
+.stats-row {
+  display:grid; grid-template-columns:repeat(4,1fr);
+  gap:6px;
+}
+.stat-mini {
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius:12px; padding:10px 6px;
+  text-align:center;
+  min-width:0; /* prevent overflow */
+}
+.sm-val {
+  font-family:'Syne', sans-serif;
+  font-size:15px; font-weight:700; color:var(--white);
+  margin-bottom:3px; line-height:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sm-val.pos { color:var(--green); }
+.sm-val.neg { color:var(--red); }
+.sm-val.gold { color:var(--gold); }
+.sm-lbl {
+  font-size:9px; letter-spacing:1.5px; color:var(--white3);
+  text-transform:uppercase; font-weight:500;
+}
+.sm-sub {
+  font-size:9px; color:var(--green); margin-top:2px; font-weight:500;
+}
+.sm-sub.neg { color:var(--red); }
+.sm-sub.neu { color:var(--white3); }
+
+/* ══════════════════════════
+   STREAK
+══════════════════════════ */
+/* streak removed */
+
+/* ══════════════════════════
+   BALANCE CARD
+══════════════════════════ */
+.balance-section { padding: 16px 16px 0; }
+
+.balance-card {
+  background: linear-gradient(135deg, #1a1500 0%, #0f0e03 40%, #0b0f0e 100%);
+  border: 1px solid var(--gold-border);
+  border-radius:22px;
+  padding:24px 20px;
+  position:relative; overflow:hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(240,168,67,0.05) inset;
+}
+.balance-card::before {
+  content:'';
+  position:absolute; top:-60px; right:-50px;
+  width:200px; height:200px;
+  background: radial-gradient(circle, rgba(240,168,67,0.12) 0%, transparent 70%);
+}
+.balance-card::after {
+  content:'';
+  position:absolute; bottom:-50px; left:-30px;
+  width:140px; height:140px;
+  background: radial-gradient(circle, rgba(52,211,153,0.06) 0%, transparent 70%);
+}
+
+.balance-label {
+  font-size:9px; letter-spacing:3px; color:var(--gold);
+  text-transform:uppercase; font-weight:600; margin-bottom:8px;
+}
+.balance-amount {
+  font-family:'Syne', sans-serif;
+  font-size:clamp(28px, 8vw, 42px); font-weight:800; color:var(--white);
+  line-height:1; margin-bottom:4px;
+  position:relative; z-index:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.balance-amount .currency {
+  font-size:20px; color:var(--gold2);
+  vertical-align:super; margin-right:4px;
+  font-weight:700;
+}
+.balance-currency {
+  font-size:10px; color:var(--white3); letter-spacing:2px; margin-bottom:20px;
+}
+
+.balance-metrics {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  gap:1px; background:rgba(255,255,255,0.06);
+  border-radius:14px; overflow:hidden;
+  position:relative; z-index:1;
+}
+.balance-metric {
+  background:rgba(255,255,255,0.03);
+  padding:12px 10px; text-align:center;
+}
+.metric-val {
+  font-family:'DM Mono', monospace;
+  font-size:13px; font-weight:500; margin-bottom:3px;
+}
+.metric-val.pos { color:var(--green); }
+.metric-val.neg { color:var(--red); }
+.metric-val.neu { color:var(--gold2); }
+.metric-lbl {
+  font-size:8px; letter-spacing:1.5px; color:var(--white3);
+  text-transform:uppercase;
+}
+
+/* ══════════════════════════
+   SECTION
+══════════════════════════ */
+.section-pad { padding:16px 16px 0; }
+.section-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:12px;
+}
+.section-title {
+  font-size:10px; letter-spacing:2.5px; color:var(--white3);
+  text-transform:uppercase; font-weight:600;
+}
+.section-link {
+  font-size:11px; color:var(--gold); font-weight:600;
+  text-decoration:none; letter-spacing:0.3px;
+  cursor:pointer; background:none; border:none;
+}
+
+/* ══════════════════════════
+   PROGRESS GERAL (MULTI-BAR)
+══════════════════════════ */
+.progress-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius:20px;
+  padding:20px;
+}
+.pcard-header {
+  display:flex; justify-content:space-between; align-items:center;
+  margin-bottom:16px;
+}
+.pcard-title {
+  font-size:13px; font-weight:600; color:var(--white);
+  display:flex; align-items:center; gap:8px;
+}
+.pcard-title svg { width:16px; height:16px; }
+.pcard-pct {
+  font-family:'Syne', sans-serif;
+  font-size:20px; font-weight:800; color:var(--blue);
+}
+
+.pbar-row { margin-bottom:14px; }
+.pbar-row:last-child { margin-bottom:0; }
+.pbar-label {
+  display:flex; justify-content:space-between;
+  font-size:12px; color:var(--white2); font-weight:500;
+  margin-bottom:6px;
+}
+.pbar-label span:last-child { color:var(--white3); font-size:11px; }
+.pbar-track {
+  height:5px; background:rgba(255,255,255,0.06);
+  border-radius:6px; overflow:hidden;
+}
+.pbar-fill { height:100%; border-radius:6px; transition:width 0.8s ease; }
+.pbar-fill.blue { background: linear-gradient(90deg, var(--blue), #93c5fd); }
+.pbar-fill.purple { background: linear-gradient(90deg, var(--purple), #c4b5fd); }
+.pbar-fill.green { background: linear-gradient(90deg, var(--green), #6ee7b7); }
+
+/* ══════════════════════════
+   QUICK ACTION
+══════════════════════════ */
+.quick-btn {
+  width:100%;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius:18px; padding:18px 18px;
+  display:flex; align-items:center; gap:16px;
+  cursor:pointer; transition:all 0.25s;
+  text-align:left; color:inherit;
+}
+.quick-btn:active { transform:scale(0.98); background:var(--bg4); }
+.qb-icon {
+  width:48px; height:48px; border-radius:14px;
+  background: linear-gradient(135deg, rgba(240,168,67,0.15), rgba(240,168,67,0.05));
+  border: 1px solid var(--gold-border);
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.qb-icon svg { width:22px; height:22px; }
+.qb-text strong {
+  font-size:15px; font-weight:600; color:var(--white);
+  display:block; margin-bottom:3px;
+}
+.qb-text span { font-size:12px; color:var(--white3); font-weight:400; }
+.qb-arrow {
+  margin-left:auto; color:var(--white3); font-size:18px; flex-shrink:0;
+  padding-left:8px;
+}
+
+/* ══════════════════════════
+   HISTORY ITEMS
+══════════════════════════ */
+.history-list { display:flex; flex-direction:column; gap:8px; padding-bottom:24px; }
+
+.history-item {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius:16px; padding:14px 16px;
+  display:flex; align-items:center; gap:12px;
+  cursor:pointer; transition:all 0.2s;
+  position:relative; overflow:hidden;
+}
+.history-item::before {
+  content:''; position:absolute;
+  left:0; top:0; bottom:0; width:3px;
+  border-radius:0 2px 2px 0;
+}
+.history-item.profit::before { background:var(--green); }
+.history-item.loss::before { background:var(--red); }
+.history-item.neutral::before { background:var(--gold); }
+
+.history-dot {
+  width:40px; height:40px; border-radius:12px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  font-size:16px;
+}
+.history-dot.profit { background:var(--green-dim); }
+.history-dot.loss { background:var(--red-dim); }
+.history-dot.neutral { background:var(--gold-dim); }
+
+.history-info { flex:1; min-width:0; }
+.h-date { font-size:11px; color:var(--white3); font-weight:400; margin-bottom:3px; }
+.h-type { font-size:13px; color:var(--white2); font-weight:500; }
+
+.history-right { text-align:right; flex-shrink:0; }
+.h-amount {
+  font-family:'DM Mono', monospace;
+  font-size:14px; font-weight:500; margin-bottom:3px;
+}
+.h-amount.pos { color:var(--green); }
+.h-amount.neg { color:var(--red); }
+.h-amount.neu { color:var(--gold2); }
+.h-balance {
+  font-family:'DM Mono', monospace;
+  font-size:10px; color:var(--white3);
+}
+
+/* Badge */
+.badge {
+  display:inline-block; padding:2px 7px;
+  border-radius:6px; font-size:9px;
+  letter-spacing:1px; text-transform:uppercase; font-weight:600;
+}
+.badge-deposit { background:rgba(240,168,67,0.12); color:var(--gold); }
+.badge-session { background:rgba(255,255,255,0.06); color:var(--white3); }
+.badge-withdraw { background:var(--red-dim); color:var(--red); }
+
+/* ══════════════════════════
+   STATS TAB
+══════════════════════════ */
+.stats-grid {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:10px; padding:20px 16px 0;
+}
+.stat-card {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:18px; padding:18px 16px;
+}
+.stat-card.full { grid-column:1/-1; }
+.sc-label {
+  font-size:9px; letter-spacing:2px; color:var(--white3);
+  text-transform:uppercase; margin-bottom:8px; font-weight:600;
+}
+.sc-val {
+  font-family:'Syne', sans-serif;
+  font-size:22px; font-weight:700; color:var(--white);
+}
+.sc-val.pos { color:var(--green); }
+.sc-val.neg { color:var(--red); }
+.sc-sub { font-size:10px; color:var(--white3); margin-top:4px; }
+
+.mini-chart { margin-top:12px; height:50px; position:relative; }
+.chart-bars { display:flex; align-items:flex-end; gap:3px; height:100%; }
+.chart-bar { flex:1; border-radius:3px 3px 0 0; min-height:3px; transition:height 0.5s ease; }
+.chart-bar.pos { background:linear-gradient(180deg,var(--green),rgba(52,211,153,0.3)); opacity:0.85; }
+.chart-bar.neg { background:linear-gradient(180deg,var(--red),rgba(248,113,113,0.3)); opacity:0.85; }
+
+.summary-row {
+  display:flex; justify-content:space-between;
+  align-items:center; padding:12px 0;
+  border-bottom:1px solid var(--border2);
+}
+.summary-row:last-child { border-bottom:none; }
+.sr-left { font-size:12px; color:var(--white2); display:flex; align-items:center; gap:8px; }
+.sr-dot { width:8px; height:8px; border-radius:50%; }
+.sr-right { font-family:'DM Mono', monospace; font-size:13px; }
+
+/* ══════════════════════════
+   EMPTY STATE
+══════════════════════════ */
+.empty-state { text-align:center; padding:60px 40px; }
+.es-icon {
+  width:64px; height:64px; border-radius:50%;
+  border:1px solid var(--border);
+  display:inline-flex; align-items:center; justify-content:center;
+  margin-bottom:20px; background:var(--bg3);
+}
+.empty-state h3 {
+  font-family:'Syne', sans-serif;
+  font-size:18px; font-weight:700; margin-bottom:8px;
+}
+.empty-state p { font-size:12px; color:var(--white3); line-height:1.7; }
+
+/* ══════════════════════════
+   BOTTOM NAVIGATION
+══════════════════════════ */
+.bottom-nav {
+  position:fixed; bottom:0; left:0; right:0; z-index:300;
+  height: calc(var(--nav-h) + var(--safe-bottom));
+  background:rgba(13,14,18,0.97);
+  backdrop-filter:blur(24px);
+  -webkit-backdrop-filter:blur(24px);
+  border-top:1px solid var(--border);
+  display:flex; align-items:flex-start;
+  padding: 0 8px;
+  padding-bottom: var(--safe-bottom);
+}
+.nav-item {
+  flex:1; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:4px;
+  height: var(--nav-h); cursor:pointer; transition:all 0.2s;
+  background:none; border:none; color:var(--white3);
+  position:relative;
+}
+.nav-item svg { width:22px; height:22px; transition:all 0.2s; }
+.nav-item span {
+  font-size:10px; font-weight:500; letter-spacing:0.5px;
+  transition:all 0.2s;
+}
+.nav-item.active { color:var(--gold); }
+.nav-item.active svg { filter:drop-shadow(0 0 6px rgba(240,168,67,0.4)); }
+
+/* Active indicator dot */
+.nav-item.active::before {
+  content:'';
+  position:absolute; top:6px;
+  width:4px; height:4px; border-radius:50%;
+  background:var(--gold);
+  box-shadow:0 0 8px rgba(240,168,67,0.6);
+}
+
+/* Badge on nav */
+.nav-badge {
+  position:absolute; top:6px; right:50%;
+  transform:translateX(12px);
+  min-width:18px; height:18px;
+  background:var(--red); border-radius:9px;
+  font-size:9px; font-weight:700; color:white;
+  display:flex; align-items:center; justify-content:center;
+  padding:0 4px;
+}
+
+/* ══════════════════════════
+   MODALS / SHEETS
+══════════════════════════ */
+.modal-overlay {
+  position:fixed; inset:0; z-index:1000;
+  background:rgba(0,0,0,0.75); backdrop-filter:blur(8px);
+  display:none; align-items:flex-end; justify-content:center;
+}
+.modal-overlay.open { display:flex; }
+
+.bottom-sheet {
+  width:100%; max-width:480px;
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-bottom:none;
+  border-radius:24px 24px 0 0;
+  padding:12px 24px calc(40px + var(--safe-bottom));
+  animation:slideUp 0.3s cubic-bezier(0.32,0.72,0,1);
+  max-height: 92vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+@keyframes slideUp {
+  from { transform:translateY(100%); opacity:0.5; }
+  to { transform:translateY(0); opacity:1; }
+}
+.sheet-handle {
+  width:36px; height:4px;
+  background:var(--border);
+  border-radius:2px; margin:0 auto 22px;
+}
+.sheet-title {
+  font-family:'Syne', sans-serif;
+  font-size:22px; font-weight:700; margin-bottom:6px;
+}
+.sheet-sub { font-size:12px; color:var(--white3); margin-bottom:26px; font-weight:400; }
+
+.type-selector {
+  display:grid; grid-template-columns:1fr 1fr 1fr;
+  gap:8px; margin-bottom:22px;
+}
+.type-opt {
+  padding:12px 8px; border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--bg3);
+  text-align:center; cursor:pointer;
+  transition:all 0.25s;
+}
+.type-opt span { display:block; font-size:20px; margin-bottom:4px; }
+.type-opt p { font-size:10px; letter-spacing:1px; color:var(--white3); text-transform:uppercase; font-weight:600; }
+.type-opt.selected { border-color:var(--gold); background:var(--gold-dim); }
+.type-opt.selected p { color:var(--gold); }
+
+.note-input {
+  width:100%; background:var(--bg3);
+  border:1px solid var(--border);
+  border-radius:14px; padding:14px 16px;
+  color:var(--white); font-family:'Plus Jakarta Sans', sans-serif;
+  font-size:13px; outline:none; resize:none;
+  margin-bottom:18px; transition:border-color 0.3s;
+  min-height:70px;
+}
+.note-input:focus { border-color:rgba(240,168,67,0.4); }
+
+.current-balance-hint {
+  display:flex; align-items:center; justify-content:space-between;
+  background:var(--bg3); border:1px solid var(--border2);
+  border-radius:12px; padding:10px 14px; margin-bottom:18px;
+}
+.hint-lbl { font-size:10px; letter-spacing:1.5px; color:var(--white3); text-transform:uppercase; font-weight:500; }
+.hint-val { font-family:'DM Mono', monospace; font-size:13px; color:var(--white2); }
+
+/* Settings */
+.settings-item {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 0; border-bottom:1px solid var(--border2);
+  cursor:pointer;
+}
+.settings-item:last-child { border-bottom:none; }
+.si-left { display:flex; align-items:center; gap:12px; }
+.si-icon {
+  width:38px; height:38px; border-radius:12px;
+  background:var(--bg3); border:1px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+}
+.si-icon svg { width:17px; height:17px; }
+.si-text strong { display:block; font-size:14px; font-weight:500; }
+.si-text span { font-size:11px; color:var(--white3); }
+.si-arrow { color:var(--white3); font-size:16px; }
+
+.danger-btn {
+  width:100%; padding:14px;
+  background:rgba(248,113,113,0.08);
+  border:1px solid rgba(248,113,113,0.25);
+  border-radius:14px; color:var(--red);
+  font-family:'Plus Jakarta Sans', sans-serif;
+  font-size:12px; letter-spacing:1.5px; text-transform:uppercase;
+  cursor:pointer; margin-top:8px; transition:all 0.3s; font-weight:600;
+}
+.danger-btn:active { background:rgba(248,113,113,0.15); }
+
+.btn-cancel {
+  padding:14px; background:var(--bg3);
+  border:1px solid var(--border); border-radius:14px;
+  color:var(--white2); font-family:'Plus Jakarta Sans', sans-serif;
+  font-size:12px; letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; font-weight:600;
+}
+
+/* Confirm modal */
+.confirm-modal {
+  position:fixed; inset:0; z-index:2000;
+  background:rgba(0,0,0,0.85); backdrop-filter:blur(12px);
+  display:none; align-items:center; justify-content:center; padding:32px;
+}
+.confirm-modal.open { display:flex; }
+.confirm-box {
+  background:var(--bg2); border:1px solid var(--border);
+  border-radius:22px; padding:32px 24px; width:100%; max-width:320px;
+  text-align:center;
+}
+.confirm-box h3 {
+  font-family:'Syne', sans-serif;
+  font-size:20px; font-weight:700; margin-bottom:10px;
+}
+.confirm-box p { font-size:13px; color:var(--white3); margin-bottom:28px; line-height:1.7; }
+.confirm-btns { display:flex; gap:10px; }
+.btn-danger {
+  flex:1; padding:14px; background:rgba(248,113,113,0.12);
+  border:1px solid rgba(248,113,113,0.3); border-radius:14px;
+  color:var(--red); font-family:'Plus Jakarta Sans', sans-serif;
+  font-size:12px; letter-spacing:1px; text-transform:uppercase;
+  cursor:pointer; font-weight:600;
+}
+
+/* Toast */
+.toast {
+  position:fixed; bottom:calc(var(--nav-h) + 16px); left:50%; transform:translateX(-50%);
+  background:var(--bg3); border:1px solid var(--border);
+  border-radius:14px; padding:12px 20px;
+  font-size:12px; color:var(--white); z-index:9000;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.3s, bottom 0.3s;
+  white-space:nowrap; font-weight:500;
+}
+.toast.show { opacity:1; bottom:calc(var(--nav-h) + 24px); }
+
+.spacer { height:20px; }
+
+/* tab content switch */
+.tab-content { display:none; }
+.tab-content.active { display:block; }
+
+/* ══════════════════════════
+   GOAL / META SYSTEM
+══════════════════════════ */
+
+/* Header do histórico com botão de meta */
+.history-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px;
+}
+.btn-meta-config {
+  display:flex; align-items:center; gap:6px;
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  border-radius:10px; padding:7px 12px;
+  color:var(--gold); font-size:11px; font-weight:600;
+  letter-spacing:0.5px; cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-meta-config:active { opacity:0.75; }
+.btn-meta-config svg { width:14px; height:14px; }
+
+/* Card resumo de meta no topo do histórico */
+.meta-summary-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius:18px;
+  padding:18px 18px 14px;
+  margin-bottom:14px;
+  position:relative; overflow:hidden;
+}
+.meta-summary-card.no-meta {
+  border-style:dashed; border-color:rgba(255,255,255,0.1);
+  text-align:center; padding:22px;
+}
+.meta-summary-card::before {
+  content:'';
+  position:absolute; top:-40px; right:-40px;
+  width:120px; height:120px;
+  background: radial-gradient(circle, rgba(240,168,67,0.07) 0%, transparent 70%);
+  pointer-events:none;
+}
+.msc-top {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  margin-bottom:12px;
+}
+.msc-left {}
+.msc-label {
+  font-size:9px; letter-spacing:2.5px; color:var(--white3);
+  text-transform:uppercase; font-weight:600; margin-bottom:4px;
+}
+.msc-name {
+  font-family:'Syne', sans-serif;
+  font-size:17px; font-weight:700; color:var(--white);
+}
+.msc-sub { font-size:11px; color:var(--white3); margin-top:2px; }
+.msc-badge {
+  display:flex; align-items:center; gap:5px;
+  padding:6px 10px; border-radius:10px;
+  font-size:11px; font-weight:700; flex-shrink:0;
+}
+.msc-badge.hit { background:var(--green-dim); color:var(--green); border:1px solid rgba(52,211,153,0.25); }
+.msc-badge.miss { background:var(--red-dim); color:var(--red); border:1px solid rgba(248,113,113,0.2); }
+.msc-badge.pending { background:var(--gold-dim); color:var(--gold); border:1px solid var(--gold-border); }
+
+/* Barra de progresso da meta no card resumo */
+.msc-bar-row {
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:10px; color:var(--white3); font-weight:500;
+  margin-bottom:6px;
+}
+.msc-bar-row span:last-child { color:var(--white2); font-family:'DM Mono', monospace; }
+.msc-bar-track {
+  height:6px; background:rgba(255,255,255,0.06);
+  border-radius:6px; overflow:hidden; margin-bottom:10px;
+}
+.msc-bar-fill {
+  height:100%; border-radius:6px;
+  transition: width 0.7s cubic-bezier(0.4,0,0.2,1);
+  position:relative;
+}
+.msc-bar-fill.hit { background: linear-gradient(90deg,var(--green),#6ee7b7); }
+.msc-bar-fill.partial { background: linear-gradient(90deg,var(--gold),var(--gold2)); }
+.msc-bar-fill.miss { background: linear-gradient(90deg,var(--red),#fca5a5); }
+
+/* Dias grid */
+.msc-days-row {
+  display:flex; gap:5px; flex-wrap:wrap; margin-top:4px;
+}
+.day-pip {
+  width:24px; height:24px; border-radius:7px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:9px; font-weight:700; flex-shrink:0;
+  border:1.5px solid var(--border);
+  color:var(--white3); background:var(--bg3);
+  transition:all 0.3s;
+}
+.day-pip.hit { background:var(--green-dim); border-color:rgba(52,211,153,0.3); color:var(--green); }
+.day-pip.miss { background:var(--red-dim); border-color:rgba(248,113,113,0.2); color:var(--red); }
+.day-pip.future { opacity:0.35; }
+
+/* Meta bar no HISTORY ITEM (inline) */
+.h-meta-bar {
+  margin-top:9px;
+}
+.hmb-row {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:4px;
+}
+.hmb-label { font-size:9px; letter-spacing:1.5px; color:var(--white3); text-transform:uppercase; font-weight:600; }
+.hmb-value { font-size:10px; font-family:'DM Mono',monospace; font-weight:500; }
+.hmb-value.hit { color:var(--green); }
+.hmb-value.miss { color:var(--red); }
+.hmb-value.partial { color:var(--gold); }
+.hmb-track {
+  height:4px; background:rgba(255,255,255,0.07);
+  border-radius:4px; overflow:hidden;
+}
+.hmb-fill {
+  height:100%; border-radius:4px;
+  transition:width 0.6s ease;
+}
+.hmb-fill.hit { background: linear-gradient(90deg,var(--green),#6ee7b7); }
+.hmb-fill.miss { background: linear-gradient(90deg,var(--red),#fca5a5); }
+.hmb-fill.partial { background: linear-gradient(90deg,var(--gold),var(--gold2)); }
+
+/* Sem meta placeholder */
+.no-meta-text { font-size:12px; color:var(--white3); }
+.no-meta-text strong { color:var(--gold); display:block; margin-bottom:4px; font-size:13px; }
+
+/* Modal meta config */
+.meta-type-selector {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:8px; margin-bottom:20px;
+}
+.meta-type-opt {
+  padding:14px 12px; border-radius:14px;
+  border:1px solid var(--border);
+  background:var(--bg3);
+  text-align:center; cursor:pointer;
+  transition:all 0.25s;
+}
+.meta-type-opt .mto-icon { font-size:22px; margin-bottom:6px; }
+.meta-type-opt .mto-title { font-size:13px; font-weight:600; color:var(--white); margin-bottom:3px; }
+.meta-type-opt .mto-sub { font-size:10px; color:var(--white3); }
+.meta-type-opt.selected { border-color:var(--gold); background:var(--gold-dim); }
+.meta-type-opt.selected .mto-title { color:var(--gold); }
+
+.meta-input-row {
+  display:grid; grid-template-columns:1fr 1fr;
+  gap:10px; margin-bottom:18px;
+}
+.meta-field-wrap { }
+.meta-field-wrap .field-label { margin-bottom:6px; }
+
+</style>
+</head>
+<body>
+
+<!-- ══════════════════
+     LOADING
+══════════════════ -->
+<div id="loading-screen" style="display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;flex-direction:column;align-items:center;justify-content:center;gap:20px;">
+  <div style="width:52px;height:52px;background:linear-gradient(135deg,var(--bg3),var(--bg4));border:1.5px solid var(--gold-border);border-radius:16px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(240,168,67,0.2);">
+    <svg viewBox="0 0 32 32" fill="none" width="28" height="28">
+      <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#f0a843" stroke-width="1.5"/>
+      <circle cx="16" cy="16" r="2.5" fill="#f0a843"/>
+    </svg>
+  </div>
+  <div style="display:flex;gap:6px;align-items:center;">
+    <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);animation:ld 1.2s ease-in-out infinite;"></div>
+    <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);animation:ld 1.2s ease-in-out 0.2s infinite;opacity:0.5;"></div>
+    <div style="width:7px;height:7px;border-radius:50%;background:var(--gold);animation:ld 1.2s ease-in-out 0.4s infinite;opacity:0.25;"></div>
+  </div>
+  <style>@keyframes ld{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(0.5);opacity:0.3}}</style>
+</div>
+
+<!-- ══════════════════
+     ONBOARDING
+══════════════════ -->
+<div id="screen-onboard" class="screen">
+  <div class="onboard-inner">
+
+    <div class="vault-logo">
+      <div class="logo-mark">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#f0a843" stroke-width="1.5" fill="none"/>
+          <path d="M16 9L23 13V19L16 23L9 19V13L16 9Z" stroke="#f0a843" stroke-width="0.7" stroke-opacity="0.4" fill="none"/>
+          <circle cx="16" cy="16" r="2.5" fill="#f0a843"/>
+        </svg>
+      </div>
+      <h1>Binary <span>Vault</span></h1>
+      <p>Gestão de Capital Premium</p>
+    </div>
+
+    <div class="onboard-card">
+      <h2>Configurar Conta</h2>
+      <p>Insira seu nome e o valor do depósito inicial para começar a rastrear seus resultados.</p>
+
+      <div class="field-group">
+        <label class="field-label">Seu Nome</label>
+        <div class="input-wrap">
+          <input type="text" id="input-name" class="name-input" placeholder="Ex: João Silva" maxlength="30">
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label class="field-label">Depósito Inicial</label>
+        <div class="input-wrap">
+          <span class="input-prefix">R$</span>
+          <input type="number" id="input-deposit" placeholder="0,00" step="0.01" min="0.01">
+        </div>
+      </div>
+
+      <button class="btn-primary" onclick="setupAccount()">Iniciar Rastreamento →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════
+     MAIN
+══════════════════ -->
+<div id="screen-main" class="screen">
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <!-- Avatar monograma -->
+    <div class="top-avatar" id="top-avatar">Y</div>
+
+    <div class="top-bar-left">
+      <div class="top-greeting"><span class="dot"></span>Bem-vindo de volta</div>
+      <div class="top-name" id="display-name">Trader</div>
+    </div>
+    <div class="top-badges">
+      <div class="badge-pill gold">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="var(--gold)" stroke="none"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span id="badge-level">Nv 1</span>
+      </div>
+    </div>
+    <div class="icon-btn" onclick="openSettings()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="rgba(240,168,67,0.75)" stroke-width="1.5">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Scrollable -->
+  <div class="scroll-area" style="flex:1;">
+
+    <!-- ── TAB: DASHBOARD ── -->
+    <div id="tab-dashboard" class="tab-content active">
+
+      <!-- Level Card -->
+      <div class="hero-section">
+        <div class="level-card">
+          <div class="lc-top">
+            <div>
+              <div class="lc-label">Nível Atual</div>
+              <div class="lc-level-num" id="lc-level">1</div>
+              <div class="lc-rank" id="lc-rank">Iniciante</div>
+            </div>
+            <div class="ring-wrap">
+              <svg viewBox="0 0 70 70" width="70" height="70">
+                <circle class="ring-bg" cx="35" cy="35" r="30"/>
+                <circle class="ring-fg" id="ring-fg" cx="35" cy="35" r="30"
+                  stroke-dasharray="188.5"
+                  stroke-dashoffset="188.5"/>
+              </svg>
+              <div class="ring-text" id="ring-pct">0%</div>
+            </div>
+          </div>
+
+          <div class="lc-progress-row">
+            <span id="lc-xp-cur">0 XP</span>
+            <span id="lc-xp-next">próximo: Nível 2 — 500 XP</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="lc-bar" style="width:0%"></div>
+          </div>
+
+          <!-- Stats mini grid -->
+          <div class="stats-row">
+            <div class="stat-mini">
+              <div class="sm-val gold" id="sm-hours">0h</div>
+              <div class="sm-lbl">Sessões</div>
+              <div class="sm-sub neu" id="sm-hours-sub">total</div>
+            </div>
+            <div class="stat-mini">
+              <div class="sm-val" id="sm-wr">0%</div>
+              <div class="sm-lbl">Win Rate</div>
+              <div class="sm-sub" id="sm-wr-sub">acertos</div>
+            </div>
+            <div class="stat-mini">
+              <div class="sm-val" id="sm-modules">0/5</div>
+              <div class="sm-lbl">ROI</div>
+              <div class="sm-sub neu" id="sm-mod-sub">total</div>
+            </div>
+            <div class="stat-mini">
+              <div class="sm-val gold" id="sm-achievements">0</div>
+              <div class="sm-lbl">Registros</div>
+              <div class="sm-sub neu">total</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- Balance -->
+      <div class="balance-section">
+        <div class="balance-card">
+          <div class="balance-label">Saldo Atual</div>
+          <div class="balance-amount"><span class="currency">R$</span><span id="disp-balance">0,00</span></div>
+          <div class="balance-currency">REAL BRASILEIRO • BRL</div>
+          <div class="balance-metrics">
+            <div class="balance-metric">
+              <div class="metric-val neu" id="m-deposit">R$0</div>
+              <div class="metric-lbl">Depósito</div>
+            </div>
+            <div class="balance-metric">
+              <div class="metric-val pos" id="m-pnl">+R$0</div>
+              <div class="metric-lbl">Resultado</div>
+            </div>
+            <div class="balance-metric">
+              <div class="metric-val neu" id="m-roi">0%</div>
+              <div class="metric-lbl">ROI</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Progress Geral -->
+      <div class="section-pad">
+        <div class="progress-card">
+          <div class="pcard-header">
+            <div class="pcard-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2">
+                <path d="M18 20V10M12 20V4M6 20v-6"/>
+              </svg>
+              Progresso Geral
+            </div>
+            <div class="pcard-pct" id="prog-pct">0%</div>
+          </div>
+          <div id="prog-main-bar" class="pbar-track" style="height:5px;margin-bottom:18px;">
+            <div class="pbar-fill blue" id="prog-fill" style="width:0%"></div>
+          </div>
+          <div class="pbar-row">
+            <div class="pbar-label">
+              <span>Sessões Registradas</span>
+              <span id="prog-sessions">0 / 10</span>
+            </div>
+            <div class="pbar-track"><div class="pbar-fill blue" id="prog-sess-fill" style="width:0%"></div></div>
+          </div>
+          <div class="pbar-row">
+            <div class="pbar-label">
+              <span>Win Rate Meta (60%)</span>
+              <span id="prog-wr-lbl">0%</span>
+            </div>
+            <div class="pbar-track"><div class="pbar-fill purple" id="prog-wr-fill" style="width:0%"></div></div>
+          </div>
+          <div class="pbar-row">
+            <div class="pbar-label">
+              <span>ROI Positivo</span>
+              <span id="prog-roi-lbl">0%</span>
+            </div>
+            <div class="pbar-track"><div class="pbar-fill green" id="prog-roi-fill" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action -->
+      <div class="section-pad">
+        <button class="quick-btn" onclick="openAddModal()">
+          <div class="qb-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#f0a843" stroke-width="2">
+              <circle cx="12" cy="12" r="9"/>
+              <line x1="12" y1="8" x2="12" y2="16"/>
+              <line x1="8" y1="12" x2="16" y2="12"/>
+            </svg>
+          </div>
+          <div class="qb-text">
+            <strong>Registrar Saldo</strong>
+            <span>Insira o valor atual após sua sessão</span>
+          </div>
+          <div class="qb-arrow">›</div>
+        </button>
+      </div>
+
+      <!-- Recent -->
+      <div class="section-pad" style="padding-top:20px;">
+        <div class="section-header">
+          <div class="section-title">Últimas Entradas</div>
+          <button class="section-link" onclick="switchToTab('history')">Ver todas →</button>
+        </div>
+        <div id="recent-list"></div>
+      </div>
+
+      <div class="spacer"></div>
+    </div>
+
+    <!-- ── TAB: HISTORY ── -->
+    <div id="tab-history" class="tab-content">
+      <div class="section-pad" style="padding-top:20px;">
+        <div class="history-header">
+          <div class="section-title">Histórico de Sessões</div>
+          <button class="btn-meta-config" onclick="openMetaModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 2v3M12 19v3M4.22 4.22l2.12 2.12M17.66 17.66l2.12 2.12M2 12h3M19 12h3M4.22 19.78l2.12-2.12M17.66 6.34l2.12-2.12"/>
+            </svg>
+            Meta
+          </button>
+        </div>
+        <div id="meta-summary-area"></div>
+        <div class="history-list" id="full-history-list"></div>
+      </div>
+    </div>
+
+    <!-- ── TAB: STATS ── -->
+    <div id="tab-stats" class="tab-content">
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="sc-label">Melhor Sessão</div>
+          <div class="sc-val pos" id="st-best">—</div>
+          <div class="sc-sub">maior ganho</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-label">Pior Sessão</div>
+          <div class="sc-val neg" id="st-worst">—</div>
+          <div class="sc-sub">maior perda</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-label">Total de Sessões</div>
+          <div class="sc-val" id="st-sessions">0</div>
+          <div class="sc-sub">entradas registradas</div>
+        </div>
+        <div class="stat-card">
+          <div class="sc-label">Win Rate</div>
+          <div class="sc-val pos" id="st-winrate">0%</div>
+          <div class="sc-sub">sessões positivas</div>
+        </div>
+        <div class="stat-card full">
+          <div class="sc-label">Evolução do Saldo (últimas 10)</div>
+          <div class="mini-chart" id="mini-chart"></div>
+        </div>
+        <div class="stat-card full">
+          <div class="sc-label">Resumo Financeiro</div>
+          <div id="financial-summary"></div>
+        </div>
+      </div>
+      <div class="spacer"></div>
+    </div>
+
+  </div><!-- /scroll-area -->
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" id="nav-dashboard" onclick="switchTab('dashboard', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <rect x="3" y="3" width="7" height="7" rx="2"/>
+        <rect x="14" y="3" width="7" height="7" rx="2"/>
+        <rect x="3" y="14" width="7" height="7" rx="2"/>
+        <rect x="14" y="14" width="7" height="7" rx="2"/>
+      </svg>
+      <span>Dashboard</span>
+    </button>
+    <button class="nav-item" id="nav-history" onclick="switchTab('history', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M9 12h6M9 8h6M9 16h4M5 4h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V6a2 2 0 012-2z"/>
+      </svg>
+      <span>Histórico</span>
+    </button>
+    <button class="nav-item" id="nav-stats" onclick="switchTab('stats', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M18 20V10M12 20V4M6 20v-6"/>
+      </svg>
+      <span>Análise</span>
+    </button>
+  </nav>
+
+</div><!-- /screen-main -->
+
+<!-- ══════ MODAL: ADD ══════ -->
+<div class="modal-overlay" id="modal-add">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Registrar Saldo</div>
+    <div class="sheet-sub">Escolha o tipo e informe o valor atual da conta</div>
+
+    <div class="type-selector">
+      <div class="type-opt selected" data-type="session" onclick="selectType('session')">
+        <span>📊</span><p>Sessão</p>
+      </div>
+      <div class="type-opt" data-type="deposit" onclick="selectType('deposit')">
+        <span>💰</span><p>Depósito</p>
+      </div>
+      <div class="type-opt" data-type="withdraw" onclick="selectType('withdraw')">
+        <span>🏦</span><p>Saque</p>
+      </div>
+    </div>
+
+    <label class="field-label">Saldo Atual da Conta</label>
+    <div class="input-wrap" style="margin-bottom:18px;">
+      <span class="input-prefix">R$</span>
+      <input type="number" id="modal-value" placeholder="0,00" step="0.01" min="0">
+    </div>
+
+    <div class="current-balance-hint">
+      <span class="hint-lbl">Saldo anterior</span>
+      <span class="hint-val" id="hint-prev">R$ 0,00</span>
+    </div>
+
+    <textarea class="note-input" id="modal-note" placeholder="Nota opcional (ex: operou EUR/USD, 10 operações)"></textarea>
+
+    <button class="btn-primary" onclick="saveEntry()">Confirmar Registro</button>
+  </div>
+</div>
+
+<!-- ══════ MODAL: SETTINGS ══════ -->
+<div class="modal-overlay" id="modal-settings">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Configurações</div>
+    <div class="sheet-sub" id="settings-sub">Conta • Binary Vault</div>
+
+    <div class="field-group" style="margin-bottom:16px;">
+      <label class="field-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f0a843" stroke-width="1.5" width="12" height="12" style="vertical-align:middle;margin-right:4px;">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+        </svg>
+        Nome do Trader
+      </label>
+      <div class="input-wrap">
+        <input type="text" id="settings-name-input" class="name-input" placeholder="Seu nome" maxlength="30">
+      </div>
+    </div>
+
+    <div class="field-group" style="margin-bottom:24px;">
+      <label class="field-label">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#f0a843" stroke-width="1.5" width="12" height="12" style="vertical-align:middle;margin-right:4px;">
+          <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+        </svg>
+        Depósito Inicial
+      </label>
+      <div class="input-wrap">
+        <span class="input-prefix">R$</span>
+        <input type="number" id="settings-deposit-input" placeholder="0,00" step="0.01" min="0.01">
+      </div>
+      <div style="font-size:10px;color:var(--white3);margin-top:6px;padding-left:2px;">⚠️ Alterar o depósito recalcula o ROI, mas não afeta o histórico.</div>
+    </div>
+
+    <button class="btn-primary" onclick="saveSettings()">Salvar Alterações</button>
+
+    <div style="margin-top:16px;">
+      <button class="danger-btn" onclick="confirmReset()">Resetar Todos os Dados</button>
+    <div style="margin-top:10px;"><button class="btn-cancel" style="width:100%;border-color:rgba(248,113,113,0.3);color:var(--red);" onclick="logoutUser()">Sair da conta (Logout)</button></div>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn-cancel" style="width:100%;" onclick="closeSettings()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ CONFIRM ══════ -->
+<div class="confirm-modal" id="confirm-modal">
+  <div class="confirm-box">
+    <h3>Resetar Dados</h3>
+    <p>Esta ação é irreversível. Todos os registros e histórico serão apagados permanentemente.</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeConfirm()">Cancelar</button>
+      <button class="btn-danger" onclick="doReset()">Apagar Tudo</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════ FIREBASE SDK ══════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ══════════════════════════════════════════
+//  🔧 COLE AQUI SUAS CREDENCIAIS DO FIREBASE
+// ══════════════════════════════════════════
+const firebaseConfig = {
+  apiKey:            "AIzaSyBpwdsoG6wjwPcQIMUGRwu6RVl4GdbiAD8",
+  authDomain:        "daytrade-1997.firebaseapp.com",
+  projectId:         "daytrade-1997",
+  storageBucket:     "daytrade-1997.firebasestorage.app",
+  messagingSenderId: "636852176533",
+  appId:             "1:636852176533:web:b6793953aef8fc44de3d9c"
+};
+// ══════════════════════════════════════════
+
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ──────────────────────────
+// STATE
+// ──────────────────────────
+let state = { name:'', initialDeposit:0, currentBalance:0, entries:[], meta:null };
+let currentUserId = null;
+
+// ──────────────────────────
+// FIRESTORE: salvar / carregar / resetar
+// ──────────────────────────
+async function save() {
+  if (!currentUserId) return;
+  try {
+    await setDoc(doc(db, 'vaults', currentUserId), state);
+  } catch(e) {
+    console.error('Erro ao salvar:', e);
+    toast('⚠️ Erro ao salvar na nuvem.');
+  }
+}
+
+async function load() {
+  if (!currentUserId) return;
+  try {
+    const snap = await getDoc(doc(db, 'vaults', currentUserId));
+    if (snap.exists()) {
+      state = snap.data();
+    }
+  } catch(e) {
+    console.error('Erro ao carregar:', e);
+  }
+}
+
+async function doReset() {
+  if (!currentUserId) return;
+  try {
+    await deleteDoc(doc(db, 'vaults', currentUserId));
+  } catch(e) { console.error(e); }
+  state = { name:'', initialDeposit:0, currentBalance:0, entries:[], meta:null };
+  document.getElementById('confirm-modal').classList.remove('open');
+  document.getElementById('modal-settings').classList.remove('open');
+  document.getElementById('screen-main').classList.remove('active');
+  document.getElementById('screen-onboard').classList.add('active');
+  document.getElementById('input-name').value = '';
+  document.getElementById('input-deposit').value = '';
+}
+
+// ──────────────────────────
+// LEVEL SYSTEM
+// ──────────────────────────
+const LEVELS = [
+  { level:1, name:'Iniciante', xp:0 },
+  { level:2, name:'Aprendiz', xp:500 },
+  { level:3, name:'Trader Jr.', xp:1200 },
+  { level:4, name:'Analista', xp:2500 },
+  { level:5, name:'Especialista', xp:4500 },
+  { level:6, name:'Senior Trader', xp:7500 },
+  { level:7, name:'Master Vault', xp:12000 },
+];
+
+function calcXP() {
+  const sessions = state.entries.filter(e => e.type === 'session');
+  const wins = sessions.filter(e => e.diff > 0).length;
+  const deposits = state.entries.filter(e => e.type === 'deposit').length;
+  return (sessions.length * 80) + (wins * 120) + (deposits * 50);
+}
+
+function getLevelInfo(xp) {
+  let cur = LEVELS[0], next = LEVELS[1];
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (xp >= LEVELS[i].xp) { cur = LEVELS[i]; next = LEVELS[i+1] || null; }
+  }
+  const pct = next ? Math.min(100, Math.round((xp - cur.xp) / (next.xp - cur.xp) * 100)) : 100;
+  return { cur, next, xp, pct };
+}
+
+// ──────────────────────────
+// INIT — aguarda login anônimo
+// ──────────────────────────
+function showLoading(on) {
+  document.getElementById('loading-screen').style.display = on ? 'flex' : 'none';
+}
+
+onAuthStateChanged(auth, async (user) => {
+  if (user && !user.isAnonymous) {
+    // Logged in with Google — normal flow
+    currentUserId = user.uid;
+    showLoading(true);
+    await load();
+    showLoading(false);
+    if (state.name && state.initialDeposit > 0) {
+      showMain();
+    } else {
+      document.getElementById('screen-onboard').classList.add('active');
+    }
+  } else if (user && user.isAnonymous) {
+    // Anonymous user: save their data temporarily, then show login screen
+    window._anonUid = user.uid;
+    window._anonDb = db;
+    showLoading(false);
+    document.getElementById('screen-login').classList.add('active');
+  } else {
+    showLoading(false);
+    document.getElementById('screen-login').classList.add('active');
+  }
+});
+
+// ──────────────────────────
+// SETUP / SHOW MAIN
+// ──────────────────────────
+async function setupAccount() {
+  const name = document.getElementById('input-name').value.trim();
+  const dep  = parseFloat(document.getElementById('input-deposit').value);
+  if (!name) return toast('Por favor, insira seu nome.');
+  if (!dep || dep <= 0) return toast('Insira um valor de depósito válido.');
+  state.name = name;
+  state.initialDeposit = dep;
+  state.currentBalance = dep;
+  state.entries = [{
+    id: Date.now(), type:'deposit', value:dep, balance:dep,
+    diff:0, note:'Depósito inicial', date:new Date().toISOString()
+  }];
+  await save();
+  showMain();
+}
+window.setupAccount = setupAccount;
+
+function showMain() {
+  document.getElementById('screen-onboard').classList.remove('active');
+  document.getElementById('screen-main').classList.add('active');
+  refreshUI();
+}
+
+// ──────────────────────────
+// TABS
+// ──────────────────────────
+function switchTab(tab, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'stats') renderStats();
+  if (tab === 'history') renderFullHistory();
+}
+window.switchTab = switchTab;
+
+function switchToTab(tab) {
+  const navEl = document.getElementById('nav-' + tab);
+  switchTab(tab, navEl);
+}
+window.switchToTab = switchToTab;
+
+// ──────────────────────────
+// MODAL ADD
+// ──────────────────────────
+let selectedType = 'session';
+
+function openAddModal() {
+  selectedType = 'session';
+  document.querySelectorAll('.type-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelector('[data-type="session"]').classList.add('selected');
+  document.getElementById('modal-value').value = '';
+  document.getElementById('modal-note').value = '';
+  document.getElementById('hint-prev').textContent = fmt(state.currentBalance);
+  document.getElementById('modal-add').classList.add('open');
+  setTimeout(() => document.getElementById('modal-value').focus(), 400);
+}
+window.openAddModal = openAddModal;
+
+function selectType(t) {
+  selectedType = t;
+  document.querySelectorAll('.type-opt').forEach(o => o.classList.remove('selected'));
+  document.querySelector('[data-type="' + t + '"]').classList.add('selected');
+}
+window.selectType = selectType;
+
+async function saveEntry() {
+  const val = parseFloat(document.getElementById('modal-value').value);
+  if (!val || val < 0) return toast('Insira um valor válido.');
+  const note = document.getElementById('modal-note').value.trim();
+  const prev = state.currentBalance;
+  const diff = val - prev;
+  state.entries.push({
+    id: Date.now(), type:selectedType, value:val, balance:val,
+    diff, note, date:new Date().toISOString()
+  });
+  state.currentBalance = val;
+  await save();
+  document.getElementById('modal-add').classList.remove('open');
+  refreshUI();
+  toast(diff >= 0 ? '✓ Registro salvo — ' + fmtDiff(diff) : '✓ Registro salvo — ' + fmtDiff(diff));
+}
+window.saveEntry = saveEntry;
+
+// ──────────────────────────
+// REFRESH UI
+// ──────────────────────────
+function refreshUI() {
+  document.getElementById('display-name').textContent = state.name;
+  const avatarEl = document.getElementById('top-avatar');
+  if (avatarEl) avatarEl.textContent = state.name ? state.name.charAt(0).toUpperCase() : '?';
+
+  const bal = state.currentBalance;
+  const dep = state.initialDeposit;
+  const totalDeposited = calcTotalDeposited();
+  const totalWithdrawn = calcTotalWithdrawn();
+  const pnl = bal + totalWithdrawn - totalDeposited;
+  const roi = dep > 0 ? (pnl / totalDeposited * 100) : 0;
+
+  document.getElementById('disp-balance').textContent = fmtNum(bal);
+  document.getElementById('m-deposit').textContent = fmt(totalDeposited);
+  document.getElementById('m-pnl').textContent = fmtDiff(pnl);
+  document.getElementById('m-roi').textContent = (roi >= 0 ? '+' : '') + roi.toFixed(1) + '%';
+
+  const pnlEl = document.getElementById('m-pnl');
+  pnlEl.className = 'metric-val ' + (pnl > 0 ? 'pos' : pnl < 0 ? 'neg' : 'neu');
+  const roiEl = document.getElementById('m-roi');
+  roiEl.className = 'metric-val ' + (roi > 0 ? 'pos' : roi < 0 ? 'neg' : 'neu');
+
+  const xp = calcXP();
+  const li = getLevelInfo(xp);
+  document.getElementById('lc-level').textContent = li.cur.level;
+  document.getElementById('lc-rank').textContent = li.cur.name;
+  document.getElementById('ring-pct').textContent = li.pct + '%';
+  document.getElementById('lc-bar').style.width = li.pct + '%';
+  document.getElementById('lc-xp-cur').textContent = xp + ' XP';
+  document.getElementById('lc-xp-next').textContent = li.next ? 'próximo: Nível ' + li.next.level + ' — ' + li.next.xp + ' XP' : 'Nível Máximo';
+  document.getElementById('badge-level').textContent = 'Nv ' + li.cur.level;
+
+  const circ = 188.5;
+  document.getElementById('ring-fg').style.strokeDashoffset = circ - (circ * li.pct / 100);
+
+  const sessions = state.entries.filter(e => e.type === 'session');
+  const wins = sessions.filter(e => e.diff > 0).length;
+  const wr = sessions.length ? Math.round(wins / sessions.length * 100) : 0;
+  document.getElementById('sm-hours').textContent = sessions.length;
+  document.getElementById('sm-wr').textContent = wr + '%';
+  document.getElementById('sm-wr').className = 'sm-val ' + (wr >= 50 ? 'pos' : wr > 0 ? 'neg' : '');
+  document.getElementById('sm-modules').textContent = roi >= 0 ? '+' + roi.toFixed(1) + '%' : roi.toFixed(1) + '%';
+  document.getElementById('sm-modules').className = 'sm-val ' + (roi > 0 ? 'pos' : roi < 0 ? 'neg' : '');
+  document.getElementById('sm-achievements').textContent = state.entries.length;
+
+  const sessTarget = 10;
+  const sessPct = Math.min(100, Math.round(sessions.length / sessTarget * 100));
+  document.getElementById('prog-sessions').textContent = sessions.length + ' / ' + sessTarget;
+  document.getElementById('prog-sess-fill').style.width = sessPct + '%';
+
+  const wrPct = Math.min(100, Math.round(wr / 60 * 100));
+  document.getElementById('prog-wr-lbl').textContent = wr + '%';
+  document.getElementById('prog-wr-fill').style.width = wrPct + '%';
+
+  const roiClamped = Math.max(0, Math.min(100, roi));
+  document.getElementById('prog-roi-lbl').textContent = roi.toFixed(1) + '%';
+  document.getElementById('prog-roi-fill').style.width = Math.min(100, Math.max(0, roi)) + '%';
+
+  const overallPct = Math.round((sessPct + wrPct + roiClamped) / 3);
+  document.getElementById('prog-pct').textContent = overallPct + '%';
+  document.getElementById('prog-fill').style.width = overallPct + '%';
+
+  renderRecent();
+  renderFullHistory();
+}
+
+function calcTotalDeposited() {
+  let total = 0;
+  state.entries.forEach((e, i) => {
+    if (e.type === 'deposit') {
+      if (i === 0) total += e.value;
+      else if (e.diff > 0) total += e.diff;
+    }
+  });
+  return total || state.initialDeposit;
+}
+
+function calcTotalWithdrawn() {
+  let total = 0;
+  state.entries.forEach(e => {
+    if (e.type === 'withdraw' && e.diff < 0) total += Math.abs(e.diff);
+  });
+  return total;
+}
+
+// ──────────────────────────
+// RENDER ENTRIES
+// ──────────────────────────
+function renderEntryHTML(e, showGoal) {
+  const isProfit = e.diff > 0, isLoss = e.diff < 0;
+  const cls = e.type === 'deposit' ? 'neutral' : e.type === 'withdraw' ? 'neutral' : (isProfit ? 'profit' : isLoss ? 'loss' : 'neutral');
+  const icon = e.type === 'deposit' ? '💰' : e.type === 'withdraw' ? '🏦' : (isProfit ? '📈' : isLoss ? '📉' : '⏸️');
+  const label = e.type === 'deposit' ? 'Depósito' : e.type === 'withdraw' ? 'Saque' : 'Sessão';
+  const badge = `<span class="badge badge-${e.type}">${label}</span>`;
+
+  let goalBar = '';
+  if (showGoal && e.type === 'session') {
+    const g = calcGoalForEntry(e);
+    if (g) {
+      const barCls = g.hit ? 'hit' : g.pct >= 50 ? 'partial' : 'miss';
+      const valCls = g.hit ? 'hit' : g.pct >= 50 ? 'partial' : 'miss';
+      const metaType = state.meta.type === 'fixed' ? fmt(g.target) : state.meta.value + '% (' + fmt(g.target) + ')';
+      goalBar = `<div class="h-meta-bar"><div class="hmb-row"><span class="hmb-label">Meta ${metaType}</span><span class="hmb-value ${valCls}">${Math.round(g.pct)}% ${g.hit ? '✓' : ''}</span></div><div class="hmb-track"><div class="hmb-fill ${barCls}" style="width:${g.pct}%"></div></div></div>`;
+    }
+  }
+
+  return `<div class="history-item ${cls}"><div class="history-dot ${cls}">${icon}</div><div class="history-info"><div class="h-date">${formatDate(e.date)} &nbsp;${badge}</div><div class="h-type">${e.note || label}</div>${goalBar}</div><div class="history-right"><div class="h-amount ${isProfit ? 'pos' : isLoss ? 'neg' : 'neu'}">${e.diff !== 0 ? fmtDiff(e.diff) : '—'}</div><div class="h-balance">Saldo: ${fmt(e.balance)}</div></div></div>`;
+}
+
+function renderRecent() {
+  const el = document.getElementById('recent-list');
+  const items = [...state.entries].reverse().slice(0, 3);
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><div class="es-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#5a6180" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg></div><h3>Sem Registros</h3><p>Registre o saldo após sua primeira sessão.</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="history-list">${items.map(e => renderEntryHTML(e)).join('')}</div>`;
+}
+
+function renderFullHistory() {
+  renderMetaSummary();
+  const el = document.getElementById('full-history-list');
+  const items = [...state.entries].reverse();
+  if (!items.length) { el.innerHTML = `<div class="empty-state"><h3>Histórico Vazio</h3><p>Nenhum registro ainda.</p></div>`; return; }
+  el.innerHTML = items.map(e => renderEntryHTML(e, true)).join('');
+}
+
+function renderStats() {
+  const sessions = state.entries.filter(e => e.type === 'session');
+  document.getElementById('st-sessions').textContent = state.entries.length;
+  if (!sessions.length) {
+    document.getElementById('st-best').textContent = '—';
+    document.getElementById('st-worst').textContent = '—';
+    document.getElementById('st-winrate').textContent = '0%';
+    document.getElementById('mini-chart').innerHTML = '<div style="color:var(--white3);font-size:11px;padding-top:10px;">Nenhuma sessão registrada</div>';
+    renderFinancialSummary(); return;
+  }
+  const diffs = sessions.map(e => e.diff);
+  const best = Math.max(...diffs), worst = Math.min(...diffs);
+  const wins = diffs.filter(d => d > 0).length;
+  const wr = Math.round(wins / sessions.length * 100);
+  document.getElementById('st-best').textContent = fmtDiff(best);
+  document.getElementById('st-worst').textContent = fmtDiff(worst);
+  document.getElementById('st-winrate').textContent = wr + '%';
+  document.getElementById('st-winrate').className = 'sc-val ' + (wr >= 50 ? 'pos' : 'neg');
+  const last10 = [...state.entries].slice(-10);
+  const maxAbs = Math.max(...last10.map(e => Math.abs(e.diff)), 1);
+  const bars = last10.map(e => { const h = Math.max(Math.round(Math.abs(e.diff) / maxAbs * 100), 4); return `<div class="chart-bar ${e.diff >= 0 ? 'pos' : 'neg'}" style="height:${h}%"></div>`; }).join('');
+  document.getElementById('mini-chart').innerHTML = `<div class="chart-bars">${bars}</div>`;
+  renderFinancialSummary();
+}
+
+function renderFinancialSummary() {
+  const dep = calcTotalDeposited(), wit = calcTotalWithdrawn(), bal = state.currentBalance;
+  const pnl = bal + wit - dep;
+  document.getElementById('financial-summary').innerHTML = `
+    <div class="summary-row"><div class="sr-left"><div class="sr-dot" style="background:var(--gold)"></div>Total Depositado</div><div class="sr-right" style="color:var(--gold2)">${fmt(dep)}</div></div>
+    <div class="summary-row"><div class="sr-left"><div class="sr-dot" style="background:var(--red)"></div>Total Sacado</div><div class="sr-right" style="color:var(--red)">${fmt(wit)}</div></div>
+    <div class="summary-row"><div class="sr-left"><div class="sr-dot" style="background:var(--blue)"></div>Saldo Atual</div><div class="sr-right" style="color:var(--white)">${fmt(bal)}</div></div>
+    <div class="summary-row"><div class="sr-left"><div class="sr-dot" style="background:${pnl >= 0 ? 'var(--green)' : 'var(--red)'}"></div>Lucro / Prejuízo</div><div class="sr-right" style="color:${pnl >= 0 ? 'var(--green)' : 'var(--red)'}">${fmtDiff(pnl)}</div></div>`;
+}
+
+// ──────────────────────────
+// SETTINGS
+// ──────────────────────────
+function openSettings() {
+  document.getElementById('settings-name-input').value = state.name;
+  document.getElementById('settings-deposit-input').value = state.initialDeposit || '';
+  document.getElementById('settings-sub').textContent = (state.name || 'Conta') + ' • Binary Vault';
+  document.getElementById('modal-settings').classList.add('open');
+}
+window.openSettings = openSettings;
+
+async function saveSettings() {
+  const name = document.getElementById('settings-name-input').value.trim();
+  const dep = parseFloat(document.getElementById('settings-deposit-input').value);
+  if (!name) return toast('Insira um nome válido.');
+  if (!dep || dep <= 0) return toast('Insira um depósito válido.');
+  state.name = name;
+  state.initialDeposit = dep;
+  await save();
+  closeSettings();
+  refreshUI();
+  toast('✓ Configurações salvas!');
+}
+window.saveSettings = saveSettings;
+
+function closeSettings() { document.getElementById('modal-settings').classList.remove('open'); }
+window.closeSettings = closeSettings;
+
+function confirmReset() { document.getElementById('confirm-modal').classList.add('open'); }
+window.confirmReset = confirmReset;
+
+function closeConfirm() { document.getElementById('confirm-modal').classList.remove('open'); }
+
+// ──────────────────────────
+// GOOGLE LOGIN
+// ──────────────────────────
+const provider = new GoogleAuthProvider();
+
+async function loginGoogle() {
+  try {
+    document.getElementById('screen-login').classList.remove('active');
+    showLoading(true);
+    const result = await signInWithPopup(auth, provider);
+    const googleUid = result.user.uid;
+    // If there was anonymous data, migrate it
+    if (window._anonUid && window._anonUid !== googleUid) {
+      try {
+        const anonSnap = await getDoc(doc(window._anonDb, 'vaults', window._anonUid));
+        if (anonSnap.exists()) {
+          const anonData = anonSnap.data();
+          // Only migrate if anonymous had real data and Google account is empty
+          const googleSnap = await getDoc(doc(db, 'vaults', googleUid));
+          if (!googleSnap.exists() && anonData.name && anonData.initialDeposit > 0) {
+            await setDoc(doc(db, 'vaults', googleUid), anonData);
+            toast('✓ Dados migrados com sucesso!');
+          }
+        }
+      } catch(e) { console.error('Erro na migração:', e); }
+    }
+  } catch(e) {
+    showLoading(false);
+    document.getElementById('screen-login').classList.add('active');
+    const el = document.getElementById('login-error');
+    if (el) { el.style.display = 'block'; el.textContent = 'Erro ao fazer login: ' + e.message; }
+    console.error(e);
+  }
+}
+window.loginGoogle = loginGoogle;
+
+async function logoutUser() {
+  await signOut(auth);
+  state = { name:'', initialDeposit:0, currentBalance:0, entries:[], meta:null };
+  currentUserId = null;
+  // Close all modals
+  document.getElementById('modal-settings').classList.remove('open');
+  document.getElementById('confirm-modal').classList.remove('open');
+  // Switch screens
+  document.getElementById('screen-main').classList.remove('active');
+  document.getElementById('screen-onboard').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+}
+window.logoutUser = logoutUser;
+
+window.closeConfirm = closeConfirm;
+window.doReset = doReset;
+
+// ──────────────────────────
+// UTILS
+// ──────────────────────────
+function fmt(n) { return 'R$ ' + (n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtNum(n) { return (n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmtDiff(n) { const s = n >= 0 ? '+' : ''; return s + (n||0).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2,style:'currency',currency:'BRL'}); }
+function formatDate(iso) { return new Date(iso).toLocaleDateString('pt-BR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}); }
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
+window.toast = toast;
+
+// ──────────────────────────
+// META / GOAL SYSTEM
+// ──────────────────────────
+let selectedMetaType = 'fixed';
+
+function openMetaModal() {
+  selectedMetaType = state.meta ? state.meta.type : 'fixed';
+  selectMetaType(selectedMetaType);
+  document.getElementById('meta-value-input').value = state.meta ? state.meta.value : '';
+  document.getElementById('meta-days-input').value = state.meta ? state.meta.days : 30;
+  document.getElementById('meta-name-input').value = state.meta ? (state.meta.name || '') : '';
+  document.getElementById('meta-remove-wrap').style.display = state.meta ? 'block' : 'none';
+  document.getElementById('modal-meta').classList.add('open');
+}
+window.openMetaModal = openMetaModal;
+
+function closeMetaModal() { document.getElementById('modal-meta').classList.remove('open'); }
+window.closeMetaModal = closeMetaModal;
+
+function selectMetaType(type) {
+  selectedMetaType = type;
+  document.getElementById('mopt-fixed').classList.toggle('selected', type === 'fixed');
+  document.getElementById('mopt-pct').classList.toggle('selected', type === 'pct');
+  document.getElementById('meta-prefix').textContent = type === 'fixed' ? 'R$' : '%';
+  document.getElementById('meta-value-label').textContent = type === 'fixed' ? 'Meta por Sessão' : 'Percentual / Sessão';
+  const inp = document.getElementById('meta-value-input');
+  inp.placeholder = type === 'fixed' ? '50' : '2';
+  inp.step = type === 'fixed' ? '0.01' : '0.01';
+}
+window.selectMetaType = selectMetaType;
+
+async function saveMeta() {
+  const val = parseFloat(document.getElementById('meta-value-input').value);
+  const days = parseInt(document.getElementById('meta-days-input').value);
+  const name = document.getElementById('meta-name-input').value.trim();
+  if (!val || val <= 0) return toast('Informe um valor para a meta.');
+  if (!days || days < 1) return toast('Informe a quantidade de dias.');
+  state.meta = { type: selectedMetaType, value: val, days, name: name || (selectedMetaType === 'fixed' ? fmt(val) + '/sessão' : val + '%/sessão'), startDate: new Date().toISOString().slice(0,10) };
+  await save();
+  closeMetaModal();
+  renderFullHistory();
+  renderMetaSummary();
+  toast('✓ Meta configurada com sucesso!');
+}
+window.saveMeta = saveMeta;
+
+async function removeMeta() {
+  state.meta = null;
+  await save();
+  closeMetaModal();
+  renderFullHistory();
+  renderMetaSummary();
+  toast('Meta removida.');
+}
+window.removeMeta = removeMeta;
+
+function calcGoalForEntry(e) {
+  if (!state.meta || e.type !== 'session') return null;
+  const m = state.meta;
+  let target = m.type === 'fixed' ? m.value : (e.balance - e.diff) * m.value / 100;
+  const actual = e.diff;
+  const pct = target > 0 ? Math.min(120, Math.max(0, (actual / target) * 100)) : 0;
+  return { target, actual, pct, hit: actual >= target };
+}
+
+function renderMetaSummary() {
+  const el = document.getElementById('meta-summary-area');
+  if (!el) return;
+  if (!state.meta) {
+    el.innerHTML = `<div class="meta-summary-card no-meta"><div class="no-meta-text"><strong>Nenhuma meta configurada</strong>Toque em "Meta" para definir seu objetivo diário</div></div>`;
+    return;
+  }
+  const m = state.meta;
+  const sessions = state.entries.filter(e => e.type === 'session');
+  const dayMap = {};
+  sessions.forEach(e => { const d = e.date.slice(0,10); if (!dayMap[d]) dayMap[d] = 0; dayMap[d] += e.diff; });
+  const start = new Date(m.startDate + 'T00:00:00');
+  const dayResults = [];
+  for (let i = 0; i < m.days; i++) {
+    const d = new Date(start); d.setDate(d.getDate() + i);
+    const key = d.toISOString().slice(0,10);
+    const today = new Date().toISOString().slice(0,10);
+    const isPast = key <= today;
+    const profit = dayMap[key] || 0;
+    const target = m.type === 'fixed' ? m.value : state.currentBalance * m.value / 100;
+    dayResults.push({ key, profit, target, isPast, hit: isPast && profit >= target });
+  }
+  const pastDays = dayResults.filter(d => d.isPast);
+  const hitDays = pastDays.filter(d => d.hit).length;
+  const totalPct = pastDays.length > 0 ? Math.round(hitDays / pastDays.length * 100) : 0;
+  const barPct = Math.min(100, totalPct);
+  const barCls = totalPct >= 80 ? 'hit' : totalPct >= 40 ? 'partial' : pastDays.length === 0 ? 'partial' : 'miss';
+  const badgeCls = pastDays.length === 0 ? 'pending' : totalPct >= 70 ? 'hit' : 'miss';
+  const badgeText = pastDays.length === 0 ? '⏳ Aguardando' : totalPct >= 70 ? '✓ On track' : '✗ Abaixo';
+  const typeLabel = m.type === 'fixed' ? fmt(m.value) + '/dia' : m.value + '%/dia';
+  const maxPips = 14;
+  let pipsHtml = '';
+  dayResults.slice(0, maxPips).forEach((d,i) => { const cls = !d.isPast ? 'future' : d.hit ? 'hit' : 'miss'; pipsHtml += `<div class="day-pip ${cls}" title="Dia ${i+1}">${i+1}</div>`; });
+  if (m.days > maxPips) pipsHtml += `<div class="day-pip future" style="font-size:8px;width:auto;padding:0 6px;">+${m.days - maxPips}</div>`;
+  el.innerHTML = `<div class="meta-summary-card"><div class="msc-top"><div class="msc-left"><div class="msc-label">Meta Ativa</div><div class="msc-name">${m.name}</div><div class="msc-sub">${typeLabel} • ${m.days} dias • ${hitDays}/${pastDays.length} batidas</div></div><div class="msc-badge ${badgeCls}">${badgeText}</div></div><div class="msc-bar-row"><span>Dias batidos</span><span>${hitDays} de ${pastDays.length} (${totalPct}%)</span></div><div class="msc-bar-track"><div class="msc-bar-fill ${barCls}" style="width:${barPct}%"></div></div><div class="msc-days-row">${pipsHtml}</div></div>`;
+}
+
+// ──────────────────────────
+// DOM READY — event listeners
+// ──────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('modal-add').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+  document.getElementById('modal-settings').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+  document.getElementById('modal-meta').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+  document.getElementById('input-name').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('input-deposit').focus(); });
+  document.getElementById('input-deposit').addEventListener('keydown', function(e) { if (e.key === 'Enter') setupAccount(); });
+});
+
+</script>
+<!-- ══════ MODAL: META CONFIG ══════ -->
+<div class="modal-overlay" id="modal-meta">
+  <div class="bottom-sheet" style="max-height:90vh;overflow-y:auto;">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Configurar Meta</div>
+    <div class="sheet-sub">Defina seu objetivo por sessão ou período</div>
+
+    <div class="meta-type-selector">
+      <div class="meta-type-opt selected" id="mopt-fixed" onclick="selectMetaType('fixed')">
+        <div class="mto-icon">💰</div>
+        <div class="mto-title">Valor Fixo</div>
+        <div class="mto-sub">Ex: R$ 50 por dia</div>
+      </div>
+      <div class="meta-type-opt" id="mopt-pct" onclick="selectMetaType('pct')">
+        <div class="mto-icon">📈</div>
+        <div class="mto-title">Porcentagem</div>
+        <div class="mto-sub">Ex: 2% do saldo</div>
+      </div>
+    </div>
+
+    <div class="meta-input-row">
+      <div class="meta-field-wrap">
+        <label class="field-label" id="meta-value-label">Meta por Sessão</label>
+        <div class="input-wrap">
+          <span class="input-prefix" id="meta-prefix">R$</span>
+          <input type="number" id="meta-value-input" placeholder="0" step="0.01" min="0.01">
+        </div>
+      </div>
+      <div class="meta-field-wrap">
+        <label class="field-label">Qtd. de Dias</label>
+        <div class="input-wrap">
+          <input type="number" id="meta-days-input" placeholder="30" step="1" min="1" max="365" style="padding-left:16px;">
+        </div>
+      </div>
+    </div>
+
+    <label class="field-label" style="margin-bottom:8px;display:block;">Nome da Meta <span style="color:var(--white3);font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+    <div class="input-wrap" style="margin-bottom:24px;">
+      <input type="text" id="meta-name-input" placeholder="Ex: Dobrar a banca em 30 dias" style="padding-left:16px;font-family:inherit;">
+    </div>
+
+    <button class="btn-primary" onclick="saveMeta()">Salvar Meta</button>
+    <div style="margin-top:10px;">
+      <button class="btn-cancel" style="width:100%;" onclick="closeMetaModal()">Cancelar</button>
+    </div>
+    <div style="margin-top:10px;" id="meta-remove-wrap">
+      <button class="danger-btn" onclick="removeMeta()" style="margin-top:0;">Remover Meta Atual</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════
+     LOGIN GOOGLE
+══════════════════ -->
+<div id="screen-login" class="screen" style="align-items:center;justify-content:center;padding:40px 24px;background:var(--bg);">
+  <div style="width:100%;max-width:360px;text-align:center;">
+    <div class="vault-logo" style="margin-bottom:32px;">
+      <div class="logo-mark">
+        <svg viewBox="0 0 32 32" fill="none">
+          <path d="M16 4L28 10V22L16 28L4 22V10L16 4Z" stroke="#f0a843" stroke-width="1.5" fill="none"/>
+          <circle cx="16" cy="16" r="2.5" fill="#f0a843"/>
+        </svg>
+      </div>
+      <h1>Binary <span>Vault</span></h1>
+      <p>Gestão de Capital Premium</p>
+    </div>
+    <div class="onboard-card">
+      <h2>Entrar na sua conta</h2>
+      <p style="margin-bottom:24px;">Faça login com Google para acessar seus dados em qualquer dispositivo.</p>
+      <button class="btn-primary" style="display:flex;align-items:center;justify-content:center;gap:10px;width:100%;" onclick="loginGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.2 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 20-9 20-20 0-1.3-.1-2.7-.4-4z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 16 19 13 24 13c3 0 5.8 1.1 7.9 3l5.7-5.7C34.1 6.5 29.3 4 24 4 16.3 4 9.7 8.4 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.8 13.5-4.8l-6.2-5.2C29.4 35.6 26.8 36.5 24 36.5c-5.2 0-9.6-3.4-11.2-8.1l-6.5 5C9.6 39.7 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.9 2.4-2.5 4.4-4.6 5.8l6.2 5.2C40.6 35.4 44 30.1 44 24c0-1.3-.1-2.7-.4-4z"/></svg>
+        Entrar com Google
+      </button>
+      <div id="login-error" style="color:var(--red);font-size:12px;margin-top:12px;display:none;"></div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
