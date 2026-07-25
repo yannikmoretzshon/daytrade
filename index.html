@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Imperium Capital — Simulador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --void:#0a0906;
+    --panel:#151209;
+    --panel-2:#1b170f;
+    --gold:#cba135;
+    --gold-bright:#f0d68a;
+    --gold-dim:#8a7133;
+    --emerald:#1a7a5e;
+    --ruby:#a83c4f;
+    --ivory:#f2e9d8;
+    --bronze:#9c8a62;
+    --error:#e0776a;
+    --vh100: 100vh;
+  }
+  @supports (height: 100dvh){ :root{ --vh100: 100dvh; } }
+
+  *{ box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+
+  html,body{
+    height:100%;
+    background:var(--void);
+    overscroll-behavior:none;
+  }
+
+  body{
+    font-family:'Jost',sans-serif;
+    color:var(--ivory);
+    min-height:var(--vh100);
+    display:flex;
+    align-items:stretch;
+    justify-content:center;
+    background:
+      radial-gradient(ellipse at 50% -10%, rgba(203,161,53,.10), transparent 55%),
+      radial-gradient(ellipse at 50% 110%, rgba(14,75,58,.12), transparent 55%),
+      var(--void);
+    padding: max(10px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  }
+
+  .stage{
+    width:100%;
+    max-width:460px;
+    min-height: calc(var(--vh100) - 20px);
+    display:flex;
+    flex-direction:column;
+    gap: clamp(8px, 1.6vh, 14px);
+    border: 1px solid var(--gold-dim);
+    border-radius:20px;
+    padding: clamp(12px, 2.2vh, 20px) clamp(14px, 4vw, 20px);
+    position:relative;
+    box-shadow: inset 0 0 40px rgba(203,161,53,.05), 0 0 0 1px rgba(203,161,53,.06);
+  }
+
+  .corner{ position:absolute; width:34px; height:34px; opacity:.5; pointer-events:none; }
+  .corner svg{ width:100%; height:100%; }
+  .corner.tl{ top:8px; left:8px; }
+  .corner.tr{ top:8px; right:8px; transform:scaleX(-1); }
+  .corner.bl{ bottom:8px; left:8px; transform:scaleY(-1); }
+  .corner.br{ bottom:8px; right:8px; transform:scale(-1,-1); }
+
+  header{
+    text-align:center;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:4px;
+    padding-top:4px;
+  }
+  .emblem{ width:26px; height:26px; opacity:.9; }
+  .emblem svg{ width:100%; height:100%; }
+  h1{
+    font-family:'Cinzel',serif;
+    font-weight:600;
+    letter-spacing:3px;
+    font-size: clamp(16px, 5.4vw, 20px);
+    color: var(--gold-bright);
+  }
+  h1 span{ color: var(--ivory); font-weight:500; }
+  .subtitle{
+    font-size: 9px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color: var(--bronze);
+  }
+
+  .toggle{
+    display:flex;
+    gap:6px;
+    background: var(--panel);
+    border:1px solid var(--gold-dim);
+    border-radius:999px;
+    padding:4px;
+  }
+  .tab{
+    flex:1;
+    font-family:'Jost',sans-serif;
+    font-size: 12px;
+    font-weight:500;
+    letter-spacing:.3px;
+    color: var(--bronze);
+    background:transparent;
+    border:none;
+    padding: 12px 6px;
+    min-height:44px;
+    border-radius:999px;
+    cursor:pointer;
+    touch-action:manipulation;
+    transition: all .3s ease;
+  }
+  .tab.active{
+    background: linear-gradient(135deg, var(--gold-dim), var(--gold));
+    color:#17130a;
+    font-weight:600;
+    box-shadow: 0 0 16px rgba(203,161,53,.35);
+  }
+
+  main{ flex:1; min-height:0; display:flex; }
+  .panel{ width:100%; display:flex; }
+  .panel.hidden{ display:none; }
+
+  .card{
+    width:100%;
+    background: linear-gradient(160deg, var(--panel-2), var(--panel));
+    border-radius:16px;
+    padding: clamp(12px,2.4vh,18px) clamp(14px,4vw,18px);
+    display:flex;
+    flex-direction:column;
+    gap: clamp(6px, 1.2vh, 10px);
+    border:1px solid rgba(203,161,53,.25);
+  }
+
+  .zone-label{
+    font-family:'Cinzel',serif;
+    font-size:10px;
+    letter-spacing:2.5px;
+    text-transform:uppercase;
+    font-weight:600;
+    padding-left:8px;
+    border-left: 2px solid var(--emerald);
+    color: var(--gold);
+  }
+  .zone-label.result{ border-left-color: var(--ruby); }
+
+  .row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+  }
+  .row label{
+    font-size:12.5px;
+    color: var(--bronze);
+    letter-spacing:.2px;
+    flex:1;
+  }
+  .row input{
+    width: 118px;
+    flex-shrink:0;
+    font-family:'Jost',sans-serif;
+    font-size:16px; /* keeps iOS from auto-zooming on focus */
+    color: var(--ivory);
+    background: rgba(0,0,0,.32);
+    border: 1px solid rgba(203,161,53,.3);
+    border-radius:8px;
+    padding: 10px 10px;
+    min-height:44px;
+    outline:none;
+    text-align:right;
+    transition: border-color .2s;
+  }
+  .row input:focus{ border-color: var(--gold); }
+
+  .calc-btn{
+    margin-top:2px;
+    width:100%;
+    min-height:48px;
+    font-family:'Cinzel',serif;
+    font-size:12.5px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color:#17130a;
+    background: linear-gradient(135deg, var(--gold-bright), var(--gold));
+    border:none;
+    border-radius:999px;
+    cursor:pointer;
+    touch-action:manipulation;
+    box-shadow: 0 4px 18px rgba(203,161,53,.3);
+  }
+  .calc-btn:active{ transform: translateY(1px); }
+
+  .divider{
+    height:1px;
+    background: linear-gradient(90deg, var(--gold-dim), transparent);
+    margin: 2px 0;
+  }
+
+  .result-figure{
+    font-family:'Cinzel',serif;
+    font-weight:600;
+    font-size: clamp(28px, 9vw, 36px);
+    color: var(--gold-bright);
+    line-height:1.1;
+    text-align:center;
+    font-variant-numeric: tabular-nums;
+  }
+  .result-figure.pulse{ animation: glow .6s ease; }
+  @keyframes glow{
+    0%{ text-shadow: 0 0 0 rgba(240,214,138,0); transform:scale(.96); }
+    50%{ text-shadow: 0 0 34px rgba(240,214,138,.55); }
+    100%{ text-shadow: 0 0 22px rgba(240,214,138,.2); transform:scale(1); }
+  }
+  .result-label{
+    font-size:10px;
+    letter-spacing:2px;
+    text-transform:uppercase;
+    color: var(--bronze);
+    text-align:center;
+    margin-top:-4px;
+  }
+  .result-row{
+    display:flex;
+    justify-content:space-between;
+    font-size:12.5px;
+  }
+  .result-row span{ color: var(--bronze); }
+  .result-row strong{
+    font-family:'Cinzel',serif;
+    color: var(--ivory);
+    font-size:13.5px;
+    font-variant-numeric: tabular-nums;
+  }
+  .error{
+    color: var(--error);
+    font-size:11px;
+    min-height:12px;
+    text-align:center;
+  }
+
+  footer{ text-align:center; padding-bottom:2px; }
+  footer p{
+    font-size:8px;
+    letter-spacing:1px;
+    text-transform:uppercase;
+    color: rgba(156,138,98,.55);
+  }
+
+  /* very short screens: trim a little more */
+  @media (max-height: 620px){
+    .subtitle{ display:none; }
+    header{ padding-top:0; }
+    .card{ gap:6px; padding: 10px 14px; }
+    .row input{ min-height:40px; padding:8px 10px; }
+    .result-figure{ font-size: clamp(24px, 8vw, 30px); }
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div class="corner tl"><svg viewBox="0 0 100 100"><g fill="none" stroke="#cba135" stroke-width="1.2"><rect x="20" y="20" width="45" height="45"/><rect x="20" y="20" width="45" height="45" transform="rotate(45 42.5 42.5)"/><circle cx="42.5" cy="42.5" r="30"/></g></svg></div>
+    <div class="corner tr"><svg viewBox="0 0 100 100"><g fill="none" stroke="#cba135" stroke-width="1.2"><rect x="20" y="20" width="45" height="45"/><rect x="20" y="20" width="45" height="45" transform="rotate(45 42.5 42.5)"/><circle cx="42.5" cy="42.5" r="30"/></g></svg></div>
+    <div class="corner bl"><svg viewBox="0 0 100 100"><g fill="none" stroke="#cba135" stroke-width="1.2"><rect x="20" y="20" width="45" height="45"/><rect x="20" y="20" width="45" height="45" transform="rotate(45 42.5 42.5)"/><circle cx="42.5" cy="42.5" r="30"/></g></svg></div>
+    <div class="corner br"><svg viewBox="0 0 100 100"><g fill="none" stroke="#cba135" stroke-width="1.2"><rect x="20" y="20" width="45" height="45"/><rect x="20" y="20" width="45" height="45" transform="rotate(45 42.5 42.5)"/><circle cx="42.5" cy="42.5" r="30"/></g></svg></div>
+
+    <header>
+      <div class="emblem"><svg viewBox="0 0 100 100"><g fill="none" stroke="#f0d68a" stroke-width="1.6"><rect x="22" y="22" width="56" height="56"/><rect x="22" y="22" width="56" height="56" transform="rotate(45 50 50)"/><circle cx="50" cy="50" r="42"/></g></svg></div>
+      <h1>IMPERIUM <span>CAPITAL</span></h1>
+      <p class="subtitle">Progressão Patrimonial · Juros Compostos</p>
+    </header>
+
+    <nav class="toggle">
+      <button class="tab active" data-tab="forward">Operações</button>
+      <button class="tab" data-tab="reverse">Projeção</button>
+    </nav>
+
+    <main>
+      <section class="panel" id="panel-forward">
+        <div class="card">
+          <div class="zone-label">Parâmetros</div>
+          <div class="row"><label for="f-initial">Valor inicial (R$)</label><input id="f-initial" type="text" inputmode="decimal" value="3,00"></div>
+          <div class="row"><label for="f-target">Valor alvo (R$)</label><input id="f-target" type="text" inputmode="decimal" value="1000,00"></div>
+          <div class="row"><label for="f-rate">Taxa por op. (%)</label><input id="f-rate" type="text" inputmode="decimal" value="2"></div>
+          <div class="row"><label for="f-ops">Operações/dia</label><input id="f-ops" type="text" inputmode="decimal" value="3"></div>
+          <button class="calc-btn" id="f-calc">Calcular</button>
+          <div class="divider"></div>
+          <div class="zone-label result">Resultado</div>
+          <div class="result-figure" id="f-n">—</div>
+          <div class="result-label">operações necessárias</div>
+          <div class="result-row"><span>Dias necessários</span><strong id="f-days">—</strong></div>
+          <div class="result-row"><span>Valor final</span><strong id="f-final">—</strong></div>
+          <div class="error" id="f-error"></div>
+        </div>
+      </section>
+
+      <section class="panel hidden" id="panel-reverse">
+        <div class="card">
+          <div class="zone-label">Parâmetros</div>
+          <div class="row"><label for="r-initial">Valor inicial (R$)</label><input id="r-initial" type="text" inputmode="decimal" value="3,00"></div>
+          <div class="row"><label for="r-rate">Taxa por op. (%)</label><input id="r-rate" type="text" inputmode="decimal" value="2"></div>
+          <div class="row"><label for="r-ops">Operações/dia</label><input id="r-ops" type="text" inputmode="decimal" value="3"></div>
+          <div class="row"><label for="r-days">Número de dias</label><input id="r-days" type="text" inputmode="decimal" value="30"></div>
+          <button class="calc-btn" id="r-calc">Calcular</button>
+          <div class="divider"></div>
+          <div class="zone-label result">Resultado</div>
+          <div class="result-figure" id="r-final">—</div>
+          <div class="result-label">valor final projetado</div>
+          <div class="result-row"><span>Total de operações</span><strong id="r-n">—</strong></div>
+          <div class="result-row"><span>Crescimento</span><strong id="r-growth">—</strong></div>
+          <div class="error" id="r-error"></div>
+        </div>
+      </section>
+    </main>
+
+    <footer><p>Simulação matemática — não é aconselhamento financeiro</p></footer>
+  </div>
+
+<script>
+  function parseNum(str){
+    if(typeof str !== 'string') return NaN;
+    return parseFloat(str.trim().replace(/\./g,'').replace(',', '.'));
+  }
+  function formatBRL(n){
+    return n.toLocaleString('pt-BR', { style:'currency', currency:'BRL', maximumFractionDigits: n < 1000 ? 4 : 2 });
+  }
+  function formatInt(n){ return n.toLocaleString('pt-BR'); }
+  function pulse(el){ el.classList.remove('pulse'); void el.offsetWidth; el.classList.add('pulse'); }
+
+  const tabs = document.querySelectorAll('.tab');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById('panel-' + tab.dataset.tab).classList.remove('hidden');
+    });
+  });
+
+  function calcForward(){
+    const errEl = document.getElementById('f-error');
+    errEl.textContent = '';
+    const initial = parseNum(document.getElementById('f-initial').value);
+    const target  = parseNum(document.getElementById('f-target').value);
+    const rate    = parseNum(document.getElementById('f-rate').value);
+    const ops     = parseNum(document.getElementById('f-ops').value);
+
+    if(!(initial > 0)){ errEl.textContent = 'Valor inicial inválido.'; return; }
+    if(!(target > initial)){ errEl.textContent = 'Alvo deve ser maior que o inicial.'; return; }
+    if(!(rate > 0)){ errEl.textContent = 'Taxa deve ser maior que zero.'; return; }
+    if(!(ops >= 1)){ errEl.textContent = 'Mínimo 1 operação/dia.'; return; }
+
+    const r = rate/100;
+    const n = Math.ceil(Math.log(target/initial)/Math.log(1+r));
+    const days = Math.ceil(n/ops);
+    const finalValue = initial*Math.pow(1+r, n);
+
+    const nEl = document.getElementById('f-n');
+    nEl.textContent = formatInt(n);
+    pulse(nEl);
+    document.getElementById('f-days').textContent = formatInt(days) + (days === 1 ? ' dia' : ' dias');
+    document.getElementById('f-final').textContent = formatBRL(finalValue);
+  }
+
+  function calcReverse(){
+    const errEl = document.getElementById('r-error');
+    errEl.textContent = '';
+    const initial = parseNum(document.getElementById('r-initial').value);
+    const rate    = parseNum(document.getElementById('r-rate').value);
+    const ops     = parseNum(document.getElementById('r-ops').value);
+    const days    = parseNum(document.getElementById('r-days').value);
+
+    if(!(initial > 0)){ errEl.textContent = 'Valor inicial inválido.'; return; }
+    if(!(rate > 0)){ errEl.textContent = 'Taxa deve ser maior que zero.'; return; }
+    if(!(ops >= 1)){ errEl.textContent = 'Mínimo 1 operação/dia.'; return; }
+    if(!(days >= 1)){ errEl.textContent = 'Mínimo 1 dia.'; return; }
+
+    const r = rate/100;
+    const n = ops*days;
+    const finalValue = initial*Math.pow(1+r, n);
+    const growth = ((finalValue/initial) - 1) * 100;
+
+    const fEl = document.getElementById('r-final');
+    fEl.textContent = formatBRL(finalValue);
+    pulse(fEl);
+    document.getElementById('r-n').textContent = formatInt(n);
+    document.getElementById('r-growth').textContent = '+' + growth.toLocaleString('pt-BR', {maximumFractionDigits:1}) + '%';
+  }
+
+  document.getElementById('f-calc').addEventListener('click', calcForward);
+  document.getElementById('r-calc').addEventListener('click', calcReverse);
+  ['f-initial','f-target','f-rate','f-ops'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown', e => { if(e.key === 'Enter'){ e.target.blur(); calcForward(); } });
+  });
+  ['r-initial','r-rate','r-ops','r-days'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown', e => { if(e.key === 'Enter'){ e.target.blur(); calcReverse(); } });
+  });
+
+  calcForward();
+</script>
+</body>
+</html>
