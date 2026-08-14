@@ -188,6 +188,26 @@ svg{display:block}
 .row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
 .spread{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .grid{display:grid;gap:12px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.scenario{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.scenario-h{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600;margin-bottom:8px}
+.scenario-rate{font-family:var(--mono);font-size:24px;font-weight:700;line-height:1}
+.scenario-legend{display:flex;flex-direction:column;gap:5px;margin-top:10px;font-size:11px;color:var(--dim)}
+.scenario-legend span{display:flex;align-items:center;gap:6px}
+.dayblock{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;margin-bottom:10px}
+.dayblock:last-child{margin-bottom:0}
+.dayblock-h{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;background:var(--panel2);border-bottom:1px solid var(--line)}
+.dayblock-date{font-weight:600;font-size:12.5px;color:var(--txt)}
+.dayblock-tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.dayblock-rows{display:flex;flex-direction:column}
+.dayrow{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--line)}
+.dayrow:last-child{border-bottom:none}
+.dayrow-h{font-size:12px;color:var(--dim)}
+.dayrow-multi{align-items:flex-start;flex-direction:column;gap:8px}
+.dayrow-pts{display:flex;gap:18px;flex-wrap:wrap}
+.pt{display:flex;align-items:center;gap:8px}
+.pt-lbl{font-size:11px;color:var(--faint);min-width:64px}
+@media(max-width:860px){.grid3{grid-template-columns:1fr}}
 .empty{padding:30px 18px;text-align:center;color:var(--faint);font-size:12px}
 .empty b{display:block;color:var(--dim);font-size:13px;font-weight:600;margin-bottom:5px}
 
@@ -200,6 +220,9 @@ svg{display:block}
 .btn.gold:hover{filter:brightness(1.07)}
 .btn:disabled{opacity:.35;cursor:not-allowed}
 .btn.sm{padding:4px 9px;font-size:11px}
+.btn.danger{border-color:rgba(246,94,107,.35);color:var(--red);background:var(--red-soft)}
+.btn.danger:hover{background:var(--red);border-color:var(--red);color:#26060A}
+.rowActs{display:flex;gap:6px;align-items:center}
 
 /* ---------- badges / tags ---------- */
 .tag{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
@@ -743,10 +766,18 @@ select.inp{appearance:none;-webkit-appearance:none;padding-right:26px;cursor:poi
     <div class="pane" id="q-loss">
       <div class="panel"><div class="panel-h"><h2>A hora seguinte depois de um Loss</h2></div>
         <div class="panel-b tight tw" id="tblLoss"></div></div>
+      <div class="panel mt2"><div class="panel-h"><h2>Se eu operasse todo Após Loss</h2><span class="hint">simulação com base no seu histórico real</span></div>
+        <div class="panel-b" id="lossSummary"></div></div>
+      <div class="panel mt2"><div class="panel-h"><h2>Histórico · Após Loss</h2><span class="hint">cada Loss e o que aconteceu na hora seguinte, dia a dia</span></div>
+        <div class="panel-b" id="lossDetail"></div></div>
     </div>
     <div class="pane" id="q-dia">
       <div class="panel"><div class="panel-h"><h2>Loss e o dia seguinte</h2><span class="hint">chance de repetir o Loss</span></div>
         <div class="panel-b tight tw" id="tblDia"></div></div>
+      <div class="panel mt2"><div class="panel-h"><h2>Se eu operasse todo Loss Dia Seguinte</h2><span class="hint">comparando 1h antes, mesma hora e 1h depois</span></div>
+        <div class="panel-b" id="diaSummary"></div></div>
+      <div class="panel mt2"><div class="panel-h"><h2>Histórico · Loss Dia Seguinte</h2><span class="hint">cada Loss e o resultado no dia seguinte, dia a dia</span></div>
+        <div class="panel-b" id="diaDetail"></div></div>
     </div>
     <div class="pane" id="q-turno">
       <div class="panel"><div class="panel-h"><h2>Desempenho por turno</h2></div>
@@ -1130,6 +1161,36 @@ function nextDay(list){
     out.push(row);
   }
   return out;
+}
+/* ---------- eventos individuais (para histórico dia a dia) ---------- */
+function afterLossEvents(list){
+  const idx=indexOf(list),out=[];
+  list.forEach(r=>{
+    if(r.result!=='loss'||r.hour>=23)return;
+    const nx=idx[r.date+'|'+(r.hour+1)];
+    if(nx&&nx.result)out.push({date:r.date,hourLoss:r.hour,hourNext:r.hour+1,result:nx.result});
+  });
+  out.sort((a,b)=>a.date===b.date?a.hourLoss-b.hourLoss:(a.date<b.date?1:-1));
+  return out;
+}
+const NDLBL=['1h antes','Mesma hora','1h depois'];
+function nextDayEvents(list){
+  const idx=indexOf(list),out=[];
+  list.forEach(r=>{
+    if(r.result!=='loss')return;
+    const pts=[-1,0,1].map((o,i)=>{
+      const tg=shift(addDays(r.date,1),r.hour,o),nx=idx[tg[0]+'|'+tg[1]];
+      return {label:NDLBL[i],date:tg[0],hour:tg[1],result:nx&&nx.result?nx.result:null};
+    });
+    if(pts.some(p=>p.result))out.push({date:r.date,hourLoss:r.hour,pts});
+  });
+  out.sort((a,b)=>a.date===b.date?a.hourLoss-b.hourLoss:(a.date<b.date?1:-1));
+  return out;
+}
+function groupByDate(events){
+  const m={};
+  events.forEach(e=>{(m[e.date]=m[e.date]||[]).push(e);});
+  return Object.keys(m).sort().reverse().map(d=>({date:d,items:m[d]}));
 }
 /* depois de k Loss contíguos, o que aconteceu na hora seguinte */
 function afterKLosses(list,k){
@@ -1650,7 +1711,8 @@ function renderHist(){
       return '<tr><td class="mono">'+fmtDate(r.date)+'</td><td class="mono">'+p2(r.hour)+':00</td>'+cels+
         '<td>'+(r.result?'<span class="badge b-'+r.result+'">'+RES[r.result]+'</span>':'<span class="badge b-open">incompleta</span>')+'</td>'+
         '<td>'+(r.result?(r.result==='loss'?'<span class="tag t-red">LOSS</span>':'<span class="tag t-green">WIN</span>'):'<span class="tag t-dim">ABERTA</span>')+'</td>'+
-        '<td><button class="btn sm" data-view="'+r.date+'|'+r.hour+'">Ver velas</button></td></tr>';
+        '<td class="rowActs"><button class="btn sm" data-view="'+r.date+'|'+r.hour+'">Ver velas</button>'+
+        '<button class="btn sm danger" data-delrec="'+r.date+'|'+r.hour+'" title="Apagar registro">Apagar</button></td></tr>';
     }).join(''),
     'Histórico vazio','Cada hora catalogada aparece aqui, com as quatro velas.')+
     (list.length>MAX?'<div style="padding:10px 12px"><span class="hint">Mostrando os '+MAX+' primeiros de '+list.length+' registros. Use os filtros para estreitar.</span></div>':'');
@@ -1658,6 +1720,20 @@ function renderHist(){
 $('#tblHist').onclick=e=>{
   const pip=e.target.closest('.pip');
   if(pip){const a=pip.dataset.e.split('|');if(D.days[a[0]]&&D.days[a[0]][a[1]]&&D.days[a[0]][a[1]][+a[2]])editCandle(a[0],+a[1],+a[2]);return;}
+  const del=e.target.closest('[data-delrec]');
+  if(del){
+    const a=del.dataset.delrec.split('|'),date=a[0],hour=a[1];
+    confirmBox('Apagar registro',
+      'O registro de '+fmtDate(date)+' às '+p2(+hour)+':00 será apagado permanentemente, incluindo as quatro velas. Esta ação não pode ser desfeita.',
+      ()=>{
+        if(D.days[date]){
+          delete D.days[date][hour];
+          if(!Object.keys(D.days[date]).length)delete D.days[date];
+        }
+        save();render();toast('Registro apagado.');
+      });
+    return;
+  }
   const v=e.target.closest('[data-view]');
   if(v){const a=v.dataset.view.split('|');showCandles(a[0],+a[1]);}
 };
@@ -1728,12 +1804,64 @@ function renderQuant(){
       '<td class="num"><b>'+f1(h.rate)+'</b></td><td class="num">'+h.n+'</td></tr>').join(''),
     'Nenhum Loss com a hora seguinte catalogada');
 
+  /* ---- Após Loss: simulação + histórico dia a dia ---- */
+  const alEv=afterLossEvents(list);
+  const alT=tally(alEv.map(e=>({result:e.result})));
+  $('#lossSummary').innerHTML=alEv.length?(
+    '<div class="kpis">'+
+    kpi('Win rate',f1(alT.rate),alT.win+' de '+alT.n+' operações',{lead:true})+
+    kpi('Direto',alT.n?f1(pct(alT.direct,alT.n)):'—',alT.direct+' vezes',{vc:'c-direct'})+
+    kpi('Gale 1',alT.n?f1(pct(alT.gale1,alT.n)):'—',alT.gale1+' vezes',{vc:'c-gale1'})+
+    kpi('Gale 2',alT.n?f1(pct(alT.gale2,alT.n)):'—',alT.gale2+' vezes',{vc:'c-gale2'})+
+    kpi('Loss',alT.n?f1(pct(alT.loss,alT.n)):'—',alT.loss+' vezes',{vc:'c-loss'})+
+    '</div><p class="hint mt">Se você tivesse operado a hora seguinte a <b>todo</b> Loss catalogado, este teria sido o seu resultado.</p>'
+  ):noData('Ainda sem simulação','Catalogue um Loss seguido da próxima hora para ver como teria sido o resultado.');
+  $('#lossDetail').innerHTML=alEv.length?groupByDate(alEv).map(g=>
+    '<div class="dayblock"><div class="dayblock-h"><span class="dayblock-date">'+fmtDate(g.date)+'</span>'+
+    '<span class="dayblock-tag">'+WD[wdOf(g.date)]+'</span></div><div class="dayblock-rows">'+
+    g.items.map(e=>'<div class="dayrow"><span class="dayrow-h mono">Loss às '+p2(e.hourLoss)+':00 → entrada às '+p2(e.hourNext)+':00</span>'+
+      '<span class="badge b-'+e.result+'">'+RES[e.result]+'</span></div>').join('')+
+    '</div></div>').join('')
+    :noData('Histórico vazio','Cada Loss catalogado com a hora seguinte fechada aparece aqui, dia a dia.');
+
   const nd=nextDay(list).filter(r=>r.pts.some(p=>p.n>0));
   $('#tblDia').innerHTML=tbl(
     '<th>Loss às</th><th class="num">Dia+1 · 1h antes</th><th class="num">Dia+1 · mesmo horário</th><th class="num">Dia+1 · 1h depois</th>',
     nd.map(r=>'<tr><td class="mono">'+p2(r.hour)+':00</td>'+
       r.pts.map(p=>'<td class="num">'+(p.n?'<span class="c-loss">'+f1(p.p)+'</span> <span class="hint mono">n='+p.n+'</span>':'—')+'</td>').join('')+'</tr>').join(''),
     'Sem pares dia/dia seguinte catalogados');
+
+  /* ---- Loss Dia Seguinte: simulação + histórico dia a dia ---- */
+  const ndEv=nextDayEvents(list);
+  const ndTs=[0,1,2].map(i=>tally(ndEv.map(e=>({result:e.pts[i].result})).filter(r=>r.result)));
+  $('#diaSummary').innerHTML=ndEv.length?(
+    '<div class="grid3">'+NDLBL.map((lbl,i)=>{
+      const t=ndTs[i];
+      return '<div class="scenario"><div class="scenario-h">'+lbl+'</div>'+
+        (t.n?(
+          '<div class="scenario-rate c-'+(t.rate>=50?'direct':'loss')+'">'+f1(t.rate)+'</div>'+
+          '<div class="hint">win rate · '+t.win+' de '+t.n+'</div>'+
+          '<div class="scenario-legend">'+
+            '<span><span class="dot" style="background:'+CORES.direct+'"></span>Direto '+t.direct+'</span>'+
+            '<span><span class="dot" style="background:'+CORES.gale1+'"></span>Gale 1 '+t.gale1+'</span>'+
+            '<span><span class="dot" style="background:'+CORES.gale2+'"></span>Gale 2 '+t.gale2+'</span>'+
+            '<span><span class="dot" style="background:'+CORES.loss+'"></span>Loss '+t.loss+'</span>'+
+          '</div>'
+        ):'<div class="hint mt">Sem amostra</div>')+
+      '</div>';
+    }).join('')+
+    '</div><p class="hint mt">Se você tivesse operado <b>todo</b> Loss no dia seguinte, nessas três janelas, este teria sido o seu resultado.</p>'
+  ):noData('Ainda sem simulação','Catalogue um Loss e o dia seguinte para ver como teria sido o resultado.');
+  $('#diaDetail').innerHTML=ndEv.length?groupByDate(ndEv).map(g=>
+    '<div class="dayblock"><div class="dayblock-h"><span class="dayblock-date">'+fmtDate(g.date)+'</span>'+
+    '<span class="dayblock-tag">'+WD[wdOf(g.date)]+'</span></div><div class="dayblock-rows">'+
+    g.items.map(e=>'<div class="dayrow dayrow-multi"><span class="dayrow-h mono">Loss às '+p2(e.hourLoss)+':00</span>'+
+      '<span class="dayrow-pts">'+e.pts.map(p=>
+        '<span class="pt"><span class="pt-lbl">'+p.label+'</span>'+
+        (p.result?'<span class="badge b-'+p.result+'">'+RES[p.result]+'</span>':'<span class="badge b-open">sem dado</span>')+
+        '</span>').join('')+'</span></div>').join('')+
+    '</div></div>').join('')
+    :noData('Histórico vazio','Cada Loss catalogado com o dia seguinte fechado aparece aqui, dia a dia.');
 
   const bt=byTurno(list),btMax=Math.max.apply(null,bt.map(t=>t.n?t.rate:-1));
   $('#tblTurno').innerHTML=tbl(
