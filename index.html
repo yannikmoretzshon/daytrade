@@ -1,0 +1,3083 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#070B12">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="M15 FX">
+<meta name="format-detection" content="telephone=no">
+<title>M15 FX · Trading Intelligence Terminal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- ═══════════ SINCRONIZAÇÃO NA NUVEM ═══════════
+     Configuração do projeto Firebase (Console → Configurações do projeto → Seus apps).
+     A databaseURL aparece no topo da página do Realtime Database. -->
+<script>
+window.FB_CONFIG={
+  apiKey:            "AIzaSyAjSNOFESlg-QRJeAeE8xP-Xllh9pLp3XU",
+  authDomain:        "daytrade-f3573.firebaseapp.com",
+  databaseURL:       "https://daytrade-f3573-default-rtdb.firebaseio.com",
+  projectId:         "daytrade-f3573",
+  storageBucket:     "daytrade-f3573.firebasestorage.app",
+  messagingSenderId: "829332556878",
+  appId:             "1:829332556878:web:23bcb0720b1cf4eb27071f"
+};
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<style>
+/* ════════════════════ TOKENS ════════════════════ */
+:root{
+  --bg:#070B12;
+  --side:#090E17;
+  --panel:#0D141F;
+  --panel2:#111A28;
+  --panel3:#16202F;
+  --line:#1A2434;
+  --line2:#263349;
+  --txt:#E6EDF7;
+  --dim:#8798B2;
+  --faint:#57677F;
+
+  --cyan:#22D3EE;
+  --cyan-d:#0891B2;
+  --cyan-soft:rgba(34,211,238,.12);
+  --cyan-line:rgba(34,211,238,.34);
+
+  --green:#10D99B;
+  --green-soft:rgba(16,217,155,.12);
+  --blue:#38BDF8;
+  --blue-soft:rgba(56,189,248,.12);
+  --yellow:#F5A524;
+  --yellow-soft:rgba(245,165,36,.12);
+  --red:#F65E6B;
+  --red-soft:rgba(246,94,107,.12);
+  --gold:#D9B45B;
+
+  --r:10px; --r-sm:7px; --r-lg:14px;
+  --side-w:212px;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --shadow:0 1px 2px rgba(0,0,0,.5);
+  --t:160ms cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+html,body{height:100%}
+body{
+  background:var(--bg);color:var(--txt);font-family:var(--sans);
+  font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;
+  font-variant-numeric:tabular-nums;overflow-x:hidden;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:2px;border-radius:4px}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line2);border-radius:6px}
+::-webkit-scrollbar-thumb:hover{background:#33435E}
+::selection{background:var(--cyan-soft)}
+svg{display:block}
+
+/* ════════════════════ SHELL ════════════════════ */
+.app{display:flex;min-height:100vh}
+
+/* ---------- sidebar ---------- */
+.side{
+  position:fixed;left:0;top:0;bottom:0;width:var(--side-w);z-index:50;
+  background:var(--side);border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
+  padding-left:env(safe-area-inset-left);
+}
+.side-brand{padding:17px 16px 15px;border-bottom:1px solid var(--line)}
+.bmark{display:flex;align-items:center;gap:9px}
+.bmark .glyph{width:26px;height:26px;border-radius:7px;flex-shrink:0;
+  background:linear-gradient(145deg,#1B2740,#0E1524);border:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:center}
+.bmark .glyph i{width:8px;height:8px;border:1.5px solid var(--gold);transform:rotate(45deg);font-style:normal}
+.bmark b{font-size:15px;font-weight:700;letter-spacing:.04em;color:var(--gold)}
+.side-brand .tagline{font-size:7.5px;letter-spacing:.15em;line-height:1.5;text-transform:uppercase;color:var(--faint);
+  font-weight:600;margin-top:7px;margin-left:35px}
+
+.side-nav{flex:1;overflow-y:auto;padding:12px 10px;display:flex;flex-direction:column;gap:2px;scrollbar-width:none}
+.side-nav::-webkit-scrollbar{display:none}
+.navlab{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);
+  font-weight:600;padding:12px 8px 6px}
+.nav{position:relative;display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r-sm);
+  font-size:12.5px;font-weight:500;color:var(--dim);width:100%;text-align:left;transition:var(--t)}
+.nav svg{width:16px;height:16px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.6;
+  stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.nav:hover{background:var(--panel2);color:var(--txt)}
+.nav.on{background:linear-gradient(90deg,var(--cyan-soft),transparent);color:var(--cyan)}
+.nav.on::before{content:'';position:absolute;left:-10px;top:8px;bottom:8px;width:2px;
+  border-radius:0 2px 2px 0;background:var(--cyan)}
+.nav.on svg{opacity:1}
+
+.side-foot{border-top:1px solid var(--line);padding:10px;padding-bottom:calc(10px + env(safe-area-inset-bottom))}
+.status{display:flex;align-items:center;gap:8px;padding:8px 10px;font-size:11px;color:var(--dim)}
+.pulse{width:6px;height:6px;border-radius:99px;background:var(--faint);flex-shrink:0;transition:var(--t)}
+.pulse.on{background:var(--green);box-shadow:0 0 0 3px var(--green-soft)}
+.pulse.busy{background:var(--cyan);box-shadow:0 0 0 3px var(--cyan-soft)}
+.pulse.bad{background:var(--red);box-shadow:0 0 0 3px var(--red-soft)}
+.userbox{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r-sm);width:100%;
+  text-align:left;transition:var(--t)}
+.userbox:hover{background:var(--panel2)}
+.avatar{width:26px;height:26px;border-radius:99px;flex-shrink:0;background:var(--panel3);
+  border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--cyan)}
+.userbox .who{min-width:0;flex:1}
+.userbox .who b{display:block;font-size:11.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.userbox .who span{display:block;font-size:9.5px;color:var(--faint);letter-spacing:.08em;text-transform:uppercase}
+
+/* ---------- área principal ---------- */
+.main{flex:1;min-width:0;margin-left:var(--side-w);display:flex;flex-direction:column}
+
+/* ---------- topbar ---------- */
+.top{position:sticky;top:0;z-index:40;background:rgba(7,11,18,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line)}
+.top-in{display:flex;align-items:center;gap:12px;padding:10px 20px;
+  padding-right:max(20px,env(safe-area-inset-right))}
+/* ---------- barra de pares ---------- */
+.assetbar{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:4px 6px 4px 10px;min-width:0;max-width:min(52vw,620px)}
+.assetbar .cl{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);
+  font-weight:600;flex-shrink:0}
+.assetbar .chips{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:1px}
+.assetbar .chips::-webkit-scrollbar{display:none}
+.pchip{flex:0 0 auto;padding:5px 11px;border-radius:6px;border:1px solid transparent;background:var(--panel2);
+  font-size:12px;font-weight:600;letter-spacing:.01em;color:var(--dim);white-space:nowrap;transition:var(--t)}
+.pchip:hover{color:var(--txt);border-color:var(--line2)}
+.pchip.on{background:var(--cyan-soft);border-color:var(--cyan-line);color:var(--cyan)}
+.pchip .hh{font-size:9px;font-weight:500;opacity:.7;margin-left:5px;font-family:var(--mono)}
+.btn.gear{display:flex;align-items:center;gap:5px;flex-shrink:0}
+.btn.gear svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round}
+.ctx{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:5px 10px;transition:var(--t)}
+.ctx:hover{border-color:var(--line2)}
+.ctx .cl{font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.ctx input,.ctx select{background:none;border:none;padding:0;font-size:12.5px;font-weight:600;
+  letter-spacing:.02em;min-width:0}
+.ctx input:focus,.ctx select:focus{outline:none}
+.ctx select{cursor:pointer;appearance:none;-webkit-appearance:none;padding-right:14px}
+.ctx.sel{position:relative}
+.ctx.sel::after{content:'';position:absolute;right:10px;top:50%;width:4px;height:4px;pointer-events:none;
+  border-right:1.4px solid var(--dim);border-bottom:1.4px solid var(--dim);transform:translateY(-70%) rotate(45deg)}
+#topAsset{width:76px;text-transform:uppercase}
+.period{display:flex;align-items:center;gap:7px}
+.period .dfield{min-width:0}
+.top-right{margin-left:auto;display:flex;align-items:center;gap:9px}
+.synct{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--dim);
+  border:1px solid var(--line);border-radius:99px;padding:5px 11px;background:var(--panel);transition:var(--t)}
+.synct:hover{border-color:var(--line2);color:var(--txt)}
+#syncLab{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.clock{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.02em;white-space:nowrap}
+
+/* ---------- páginas ---------- */
+.page{display:none;padding:20px;padding-left:max(20px,env(safe-area-inset-left));
+  padding-right:max(20px,env(safe-area-inset-right));
+  padding-bottom:60px;max-width:1680px;width:100%;margin:0 auto}
+.page.on{display:block;animation:in .2s ease}
+@keyframes in{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.ph{margin-bottom:16px}
+.ph h1{font-size:21px;font-weight:600;letter-spacing:-.02em}
+.ph p{font-size:12px;color:var(--faint);margin-top:3px}
+
+/* ════════════════════ PRIMITIVOS ════════════════════ */
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.panel-h{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 14px;border-bottom:1px solid var(--line);min-height:42px}
+.panel-h h2{font-size:9.5px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;color:var(--dim)}
+.panel-b{padding:14px}
+.panel-b.tight{padding:0}
+.hint{font-size:11px;color:var(--faint);line-height:1.55}
+.mono{font-family:var(--mono)}
+.mt{margin-top:12px}.mt2{margin-top:16px}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.spread{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.grid{display:grid;gap:12px}
+.empty{padding:30px 18px;text-align:center;color:var(--faint);font-size:12px}
+.empty span{display:block;margin-top:4px}
+.empty b{display:block;color:var(--dim);font-size:13px;font-weight:600;margin-bottom:5px}
+
+.btn{border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 12px;font-size:12px;
+  color:var(--dim);font-weight:500;transition:var(--t);white-space:nowrap}
+.btn:hover{border-color:var(--line2);color:var(--txt);background:var(--panel2)}
+.btn.pri{background:var(--cyan);border-color:var(--cyan);color:#04222B;font-weight:600}
+.btn.pri:hover{background:#3DDDF3;border-color:#3DDDF3;color:#04222B}
+.btn.gold{background:linear-gradient(180deg,#E3C574,#C9A24C);border-color:#C9A24C;color:#20190A;font-weight:600}
+.btn.gold:hover{filter:brightness(1.07)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.btn.sm{padding:4px 9px;font-size:11px}
+
+/* ---------- badges / tags ---------- */
+.tag{display:inline-block;font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;
+  padding:3px 7px;border-radius:4px;border:1px solid;white-space:nowrap}
+.t-green{color:var(--green);border-color:rgba(16,217,155,.35);background:var(--green-soft)}
+.t-cyan{color:var(--cyan);border-color:var(--cyan-line);background:var(--cyan-soft)}
+.t-blue{color:var(--blue);border-color:rgba(56,189,248,.35);background:var(--blue-soft)}
+.t-amber{color:var(--yellow);border-color:rgba(245,165,36,.35);background:var(--yellow-soft)}
+.t-red{color:var(--red);border-color:rgba(246,94,107,.35);background:var(--red-soft)}
+.t-dim{color:var(--faint);border-color:var(--line2)}
+.badge{display:inline-block;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:5px;border:1px solid}
+.b-direct{color:var(--green);border-color:rgba(16,217,155,.32);background:var(--green-soft)}
+.b-gale1{color:var(--blue);border-color:rgba(56,189,248,.32);background:var(--blue-soft)}
+.b-gale2{color:var(--yellow);border-color:rgba(245,165,36,.32);background:var(--yellow-soft)}
+.b-loss{color:var(--red);border-color:rgba(246,94,107,.32);background:var(--red-soft)}
+.b-open{color:var(--faint);border-color:var(--line2)}
+.c-direct{color:var(--green)}.c-gale1{color:var(--blue)}.c-gale2{color:var(--yellow)}
+.c-loss{color:var(--red)}.c-acc{color:var(--cyan)}.c-dim{color:var(--faint)}
+
+/* ---------- KPI ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:10px}
+.kpi{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  padding:12px 13px;box-shadow:var(--shadow);overflow:hidden;transition:var(--t)}
+.kpi:hover{border-color:var(--line2)}
+.kpi .k,.kpi .v,.kpi .s{position:relative;z-index:1}
+.kpi .k{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700;padding-right:30px;line-height:1.35}
+.kpi .v{font-size:26px;font-weight:700;letter-spacing:-.035em;margin-top:6px;line-height:1.05}
+.kpi .v.txt{font-size:17px;letter-spacing:-.01em;line-height:1.3;margin-top:7px}
+.kpi .s{font-size:10.5px;color:var(--faint);margin-top:5px;font-family:var(--mono);line-height:1.4}
+.kpi .spark{position:absolute;right:0;bottom:0;left:0;height:22px;opacity:.5;pointer-events:none}
+.kpi.lead{border-color:var(--cyan-line);background:linear-gradient(150deg,rgba(34,211,238,.09),transparent 62%),var(--panel)}
+.kpi .ring{position:absolute;right:11px;top:11px}
+.delta{font-size:10.5px;font-weight:600;font-family:var(--mono)}
+
+/* ---------- tabelas ---------- */
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{text-align:left;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);
+  font-weight:700;padding:9px 11px;background:var(--panel2);border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:8px 11px;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:last-child td{border-bottom:none}
+tbody tr{transition:background var(--t)}
+tbody tr:hover{background:var(--panel2)}
+td.num,th.num{text-align:right;font-family:var(--mono)}
+td.rank{font-family:var(--mono);color:var(--faint);width:28px}
+tr.hi td{background:rgba(34,211,238,.06)}
+tr.hi td:first-child{box-shadow:inset 2px 0 0 var(--cyan)}
+tr.dim td{color:var(--faint)}
+.qbadge{display:inline-flex;align-items:center;justify-content:center;min-width:30px;padding:2px 6px;
+  border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:700;border:1px solid}
+.mini{width:46px;height:3px;background:var(--panel3);border-radius:3px;overflow:hidden;
+  display:inline-block;vertical-align:middle;margin-left:6px}
+.mini i{display:block;height:100%;background:var(--cyan);transition:width .3s}
+
+/* ---------- barra segmentada ---------- */
+.seg{display:flex;height:6px;border-radius:99px;overflow:hidden;background:var(--panel3)}
+.seg i{display:block;height:100%;transition:width .3s}
+.seg.tall{height:9px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:9px}
+.legend div{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim)}
+.dot{width:7px;height:7px;border-radius:2px;flex-shrink:0}
+
+/* ---------- subnav ---------- */
+.subs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:14px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:4px;width:fit-content;max-width:100%}
+.sub{padding:7px 13px;border-radius:var(--r-sm);font-size:12px;color:var(--dim);font-weight:500;
+  white-space:nowrap;transition:var(--t)}
+.sub:hover{color:var(--txt);background:var(--panel2)}
+.sub.on{background:var(--cyan-soft);color:var(--cyan);box-shadow:inset 0 0 0 1px var(--cyan-line)}
+.pane{display:none}.pane.on{display:block}
+
+/* ---------- campos ---------- */
+.field{display:flex;flex-direction:column;gap:4px}
+.field>label{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.inp{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-sm);padding:7px 10px;
+  color:var(--txt);min-width:0;transition:var(--t)}
+.inp:hover{border-color:var(--line2)}
+.inp:focus{outline:none;border-color:var(--cyan-line);background:var(--panel2)}
+select.inp{appearance:none;-webkit-appearance:none;padding-right:26px;cursor:pointer;
+  background-image:linear-gradient(45deg,transparent 50%,var(--dim) 50%),linear-gradient(135deg,var(--dim) 50%,transparent 50%);
+  background-position:calc(100% - 14px) 52%,calc(100% - 10px) 52%;
+  background-size:4px 4px,4px 4px;background-repeat:no-repeat}
+
+.dfield{position:relative;display:flex;align-items:center;gap:8px;min-width:132px;
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 10px;transition:var(--t)}
+.dfield:hover{border-color:var(--line2)}
+.dfield:focus-within{border-color:var(--cyan-line);background:var(--panel2)}
+.dfield input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;
+  border:none;background:none;color-scheme:dark;padding:0;margin:0}
+.dfield input::-webkit-calendar-picker-indicator{position:absolute;inset:0;width:100%;height:100%;
+  margin:0;padding:0;opacity:0;cursor:pointer}
+.dfield .lz{width:5px;height:5px;border-radius:99px;background:var(--line2);flex-shrink:0;transition:var(--t)}
+.dfield.has .lz{background:var(--cyan);box-shadow:0 0 0 2.5px var(--cyan-soft)}
+.dfield .dv{font-size:12px;color:var(--faint);white-space:nowrap;letter-spacing:.01em}
+.dfield.has .dv{color:var(--txt)}
+.dfield .dv u{text-decoration:none;font-weight:600}
+.dfield .dv em{font-style:normal;color:var(--dim);text-transform:uppercase;font-size:10px;
+  letter-spacing:.1em;margin:0 3px}
+.dfield .dv s{text-decoration:none;color:var(--faint)}
+
+.stepper{display:inline-flex;align-items:center;background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--r-sm);overflow:hidden;transition:var(--t)}
+.stepper:hover{border-color:var(--line2)}
+.stepper:focus-within{border-color:var(--cyan-line)}
+.stepper button{width:27px;align-self:stretch;color:var(--dim);font-size:14px;line-height:1;transition:var(--t)}
+.stepper button:hover{color:var(--cyan);background:var(--panel3)}
+.stepper button:disabled{color:var(--line2);background:none;cursor:not-allowed}
+.stepper .sv{display:flex;align-items:baseline;gap:3px;padding:5px 3px;min-width:58px;justify-content:center}
+.stepper input{width:38px;text-align:right;background:none;border:none;padding:0;
+  font-family:var(--mono);font-size:15px;font-weight:600;color:var(--txt)}
+.stepper input:focus{outline:none}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.stepper .su{font-size:9px;color:var(--dim);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+
+/* ════════════════════ REGISTRO ════════════════════ */
+.cycle{display:flex;align-items:stretch;gap:0}
+.step{flex:1;min-width:0;position:relative;background:var(--panel2);border:1px solid var(--line);
+  border-radius:var(--r);padding:13px 12px;text-align:left;transition:var(--t);overflow:hidden}
+.step .idx{display:flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:99px;
+  border:1.5px solid var(--line2);font-family:var(--mono);font-size:10.5px;font-weight:700;color:var(--faint);
+  transition:var(--t)}
+.step .role{font-size:8.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);
+  font-weight:700;margin-top:9px}
+.step .time{font-family:var(--mono);font-size:17px;font-weight:600;margin-top:5px;letter-spacing:-.02em}
+.step .st{font-size:10.5px;margin-top:7px;color:var(--faint);display:flex;align-items:center;gap:5px}
+.step .st i{width:5px;height:5px;border-radius:99px;background:currentColor;font-style:normal;flex-shrink:0}
+.step.now{border-color:var(--cyan-line);background:linear-gradient(160deg,rgba(34,211,238,.1),transparent 65%),var(--panel2)}
+.step.now .idx{border-color:var(--cyan);color:var(--cyan);background:var(--cyan-soft)}
+.step.now .role{color:var(--cyan)}
+.step.g{border-color:rgba(16,217,155,.35)}
+.step.g .idx{border-color:var(--green);color:var(--green);background:var(--green-soft)}
+.step.g .st{color:var(--green)}
+.step.r{border-color:rgba(246,94,107,.35)}
+.step.r .idx{border-color:var(--red);color:var(--red);background:var(--red-soft)}
+.step.r .st{color:var(--red)}
+.step.done{cursor:pointer}
+.step.done:hover{border-color:var(--line2);background:var(--panel3)}
+.step.skip{opacity:.4}
+.arrow{display:flex;align-items:center;justify-content:center;width:26px;flex-shrink:0;color:var(--line2)}
+.arrow svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:1.6}
+
+.regbtns{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.regbtn{border-radius:var(--r);padding:17px 14px;border:1px solid;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:2px;transition:transform .12s var(--t),filter var(--t)}
+.regbtn b{font-size:14px;font-weight:700;letter-spacing:.04em}
+.regbtn span{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;font-weight:600;opacity:.75}
+.regbtn:active{transform:scale(.985)}
+.regbtn.g{background:linear-gradient(170deg,#13B682,#0C8A61);
+  border-color:#15C68C;color:#02150E}
+.regbtn.g:hover{filter:brightness(1.08)}
+.regbtn.r{background:linear-gradient(170deg,#E2404F,#B62A38);border-color:#E85260;color:#1B0508}
+.regbtn.r:hover{filter:brightness(1.08)}
+
+.nextc{display:flex;align-items:baseline;gap:8px}
+.nextc .hh{font-family:var(--mono);font-size:30px;font-weight:700;letter-spacing:-.03em}
+.probsplit{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.probsplit .pv{font-size:25px;font-weight:700;letter-spacing:-.03em;line-height:1}
+.probsplit .pl{font-size:8.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--faint);
+  font-weight:700;margin-top:4px}
+.metarow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;
+  padding-top:12px;border-top:1px solid var(--line)}
+.metarow .mk{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.metarow .mv{font-size:13px;font-weight:600;margin-top:4px}
+.conf{height:5px;border-radius:99px;background:var(--panel3);overflow:hidden;margin-top:10px}
+.conf i{display:block;height:100%;background:linear-gradient(90deg,var(--cyan-d),var(--cyan));transition:width .3s}
+.hlist{display:flex;flex-direction:column}
+.hitem{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);font-size:12px}
+.hitem:last-child{border-bottom:none}
+.hitem .n{font-family:var(--mono);font-size:10px;color:var(--faint);width:14px}
+.hitem .d{font-family:var(--mono);color:var(--dim)}
+.hitem .v{margin-left:auto;font-family:var(--mono);font-weight:600}
+
+/* ════════════════════ HISTÓRICO ════════════════════ */
+.pips{display:flex;gap:3px}
+.pip{width:22px;height:22px;border-radius:4px;border:1px solid var(--line2);background:var(--panel2);
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;
+  color:var(--faint);transition:var(--t)}
+.pip.g{background:var(--green);border-color:var(--green);color:#04231A}
+.pip.r{background:var(--red);border-color:var(--red);color:#26060A}
+.pip.ref{box-shadow:0 0 0 1.5px var(--bg),0 0 0 2.5px var(--cyan)}
+.pip:hover{filter:brightness(1.2)}
+.candles{display:flex;align-items:flex-end;justify-content:center;gap:12px;height:110px;padding:10px 0}
+.cnd{display:flex;flex-direction:column;align-items:center;gap:7px}
+.cnd .bar{width:16px;border-radius:3px;background:var(--panel3);transition:var(--t)}
+.cnd .bar.g{background:linear-gradient(180deg,#15C68C,#0C8A61)}
+.cnd .bar.r{background:linear-gradient(180deg,#E85260,#B62A38)}
+.cnd .lb{font-size:9px;color:var(--faint);letter-spacing:.05em}
+
+/* ════════════════════ SINAIS ════════════════════ */
+.filters{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.factor{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--line);font-size:12px}
+.factor:last-child{border-bottom:none}
+.factor .ic{flex-shrink:0;width:15px;height:15px;border-radius:99px;display:flex;align-items:center;
+  justify-content:center;font-size:9px;font-weight:700;margin-top:1px}
+.factor.pro .ic{background:var(--green-soft);color:var(--green)}
+.factor.con .ic{background:var(--yellow-soft);color:var(--yellow)}
+.factor .tx{color:var(--dim);line-height:1.5}
+.factor .tx b{color:var(--txt);font-weight:600}
+
+/* drawer de detalhe do sinal */
+.drawer{position:fixed;inset:0;z-index:85;display:none}
+.drawer.on{display:block}
+.drawer .bd{position:absolute;inset:0;background:rgba(4,7,12,.72);backdrop-filter:blur(3px);animation:fadein .2s}
+@keyframes fadein{from{opacity:0}to{opacity:1}}
+.drawer .pn{position:absolute;right:0;top:0;bottom:0;width:min(520px,100%);background:var(--panel);
+  border-left:1px solid var(--line2);overflow-y:auto;animation:slidein .22s cubic-bezier(.4,0,.2,1);
+  padding-bottom:env(safe-area-inset-bottom)}
+@keyframes slidein{from{transform:translateX(24px);opacity:.4}to{transform:none;opacity:1}}
+.drawer-h{position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);
+  padding:15px 17px;display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:2}
+.drawer-h .hh{font-family:var(--mono);font-size:24px;font-weight:700;letter-spacing:-.03em}
+.drawer-b{padding:16px 17px}
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.dcell{background:var(--panel2);border:1px solid var(--line);border-radius:var(--r-sm);padding:9px 10px}
+.dcell .k{font-size:8px;letter-spacing:.13em;text-transform:uppercase;color:var(--faint);font-weight:700}
+.dcell .v{font-size:17px;font-weight:700;letter-spacing:-.02em;margin-top:3px}
+.qbig{display:flex;align-items:baseline;gap:6px}
+.qbig b{font-size:34px;font-weight:700;letter-spacing:-.04em;line-height:1}
+.qbig span{font-size:12px;color:var(--faint);font-family:var(--mono)}
+
+/* ════════════════════ ASSISTENTE ════════════════════ */
+.chat{display:flex;flex-direction:column;height:min(70vh,640px)}
+.chat-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:11px}
+.msg{max-width:80%;padding:11px 14px;border-radius:12px;font-size:12.5px;line-height:1.6;white-space:pre-wrap}
+.msg.me{align-self:flex-end;background:var(--cyan-soft);border:1px solid var(--cyan-line)}
+.msg.ai{align-self:flex-start;background:var(--panel2);border:1px solid var(--line)}
+.msg.ai b{color:var(--cyan);font-weight:600}
+.chat-in{display:flex;gap:8px;padding:11px;border-top:1px solid var(--line);background:var(--panel2)}
+.chat-in input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 12px}
+.chat-in input:focus{outline:none;border-color:var(--cyan-line)}
+.chat-in .send{width:38px;display:flex;align-items:center;justify-content:center;border-radius:var(--r-sm);
+  background:var(--cyan);color:#04222B}
+.chat-in .send svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2}
+.qsug{display:flex;flex-direction:column;gap:6px}
+.qsug button{display:flex;align-items:center;gap:8px;text-align:left;padding:9px 11px;border-radius:var(--r-sm);
+  border:1px solid var(--line);font-size:11.5px;color:var(--dim);transition:var(--t);width:100%}
+.qsug button:hover{border-color:var(--cyan-line);color:var(--txt);background:var(--panel2)}
+.qsug button svg{width:13px;height:13px;stroke:var(--cyan);fill:none;stroke-width:1.7;flex-shrink:0}
+
+/* ---------- gerenciador de pares ---------- */
+.wgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.wchip{padding:8px 2px;border-radius:var(--r-sm);border:1px solid var(--line);background:var(--panel2);
+  font-size:11px;font-weight:600;color:var(--faint);transition:var(--t)}
+.wchip:hover{border-color:var(--line2);color:var(--txt)}
+.wchip.on{border-color:var(--cyan-line);background:var(--cyan-soft);color:var(--cyan)}
+.hchip.part{border-color:var(--yellow);background:var(--yellow-soft);color:var(--yellow)}
+.sess{border:1px solid var(--cyan-line);background:var(--cyan-soft);border-radius:var(--r-sm);padding:10px 12px}
+.sesslab{font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:700}
+.sess select.sm{padding:5px 22px 5px 8px;font-size:12px;font-family:var(--mono);
+  background-position:calc(100% - 12px) 52%,calc(100% - 8px) 52%}
+.cron{border:1px solid var(--line);border-radius:var(--r-sm);overflow:hidden}
+.cronrow{display:flex;align-items:center;gap:9px;padding:8px 11px;border-bottom:1px solid var(--line);
+  font-size:12px;flex-wrap:wrap}
+.cronrow:last-child{border-bottom:none}
+.cronrow .wd{width:86px;color:var(--txt);font-weight:600;flex-shrink:0}
+.cronrow .tog{min-width:76px}
+.cronrow.off .tog{color:var(--faint)}
+.cronrow:not(.off) .tog{border-color:var(--cyan-line);color:var(--cyan);background:var(--cyan-soft)}
+.cronrow .rng{display:flex;align-items:center;gap:6px;color:var(--dim)}
+.cronrow .rng.fech{color:var(--faint)}
+.cronrow select.sm{padding:5px 22px 5px 8px;font-size:12px;font-family:var(--mono);
+  background-position:calc(100% - 12px) 52%,calc(100% - 8px) 52%}
+.cronrow .hr{font-family:var(--mono);font-weight:600;margin-left:auto;color:var(--dim)}
+.cronrow.off .hr{color:var(--faint);font-weight:400}
+.cronrow .rowacts{display:flex;gap:5px}
+.cronrow.editing{background:var(--panel2);box-shadow:inset 2px 0 0 var(--cyan)}
+.hgrid{display:grid;grid-template-columns:repeat(8,1fr);gap:5px}
+.hchip{padding:7px 2px;border-radius:6px;border:1px solid var(--line);font-family:var(--mono);
+  font-size:11px;color:var(--faint);transition:var(--t);text-align:center}
+.hchip:hover{border-color:var(--line2);color:var(--txt)}
+.hchip.on{background:var(--cyan-soft);border-color:var(--cyan-line);color:var(--cyan);font-weight:600}
+.parrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);
+  border-radius:var(--r-sm);margin-bottom:7px;background:var(--panel2);transition:var(--t)}
+.parrow.on{border-color:var(--cyan-line);background:linear-gradient(90deg,var(--cyan-soft),transparent)}
+.parrow .nm{font-weight:600;font-size:13px}
+.parrow .mt0{font-size:10.5px;color:var(--faint);font-family:var(--mono);margin-top:2px}
+.parrow .acts2{margin-left:auto;display:flex;gap:6px}
+
+/* ════════════════════ MODAIS ════════════════════ */
+.ovl{position:fixed;inset:0;background:rgba(4,7,12,.76);backdrop-filter:blur(4px);z-index:90;
+  display:none;align-items:center;justify-content:center;padding:18px;overflow-y:auto}
+.ovl.on{display:flex;animation:fadein .18s}
+.modal{background:var(--panel);border:1px solid var(--line2);border-radius:var(--r-lg);padding:20px;
+  width:min(430px,100%);box-shadow:0 24px 60px rgba(0,0,0,.6);animation:pop .2s cubic-bezier(.4,0,.2,1);
+  max-height:calc(100vh - 36px);overflow-y:auto;overscroll-behavior:contain}
+@keyframes pop{from{transform:scale(.97);opacity:.5}to{transform:none;opacity:1}}
+.modal h3{font-size:15px;font-weight:600;margin-bottom:8px}
+.modal p{font-size:12.5px;color:var(--dim);line-height:1.6}
+.modal .acts{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap;
+  position:sticky;bottom:-20px;background:var(--panel);padding:12px 0 4px;
+  box-shadow:0 -10px 14px -8px var(--panel)}
+.cform{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.cform input{background:var(--bg);border:1px solid var(--line);border-radius:var(--r-sm);padding:11px 12px;
+  font-size:15px;width:100%}
+.cform input:focus{outline:none;border-color:var(--cyan-line);background:var(--panel2)}
+.cerr{font-size:11.5px;color:var(--red);margin-top:9px;line-height:1.45}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;padding:12px;
+  background:var(--panel2);border:1px solid var(--line2);border-radius:var(--r-sm);font-size:13.5px;
+  font-weight:500;transition:var(--t)}
+.gbtn:hover{border-color:var(--cyan-line);background:var(--panel3)}
+.gmark{width:19px;height:19px;border-radius:99px;background:#fff;color:#4285F4;font-style:normal;
+  font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.cor{display:flex;align-items:center;gap:9px;margin:2px 0}
+.cor::before,.cor::after{content:'';flex:1;height:1px;background:var(--line)}
+.cor span{font-size:9px;color:var(--faint);letter-spacing:.11em;text-transform:uppercase}
+.toast{position:fixed;bottom:22px;left:calc(50% + var(--side-w)/2);transform:translate(-50%,80px);
+  background:var(--panel3);border:1px solid var(--line2);border-radius:var(--r-sm);padding:11px 17px;
+  font-size:12.5px;z-index:95;opacity:0;transition:var(--t);pointer-events:none;
+  box-shadow:0 12px 32px rgba(0,0,0,.5);max-width:calc(100vw - 32px);text-align:center}
+.toast.on{opacity:1;transform:translate(-50%,0)}
+/* com uma janela aberta o aviso sobe, para não cobrir os botões */
+.toast.up{bottom:auto;top:20px;transform:translate(-50%,-80px)}
+.toast.up.on{transform:translate(-50%,0)}
+
+/* barra inferior — só no celular */
+.tabbar{display:none}
+
+/* ════════════════════ RESPONSIVO ════════════════════ */
+@media(max-width:1500px){
+  .dgrid{grid-template-columns:repeat(3,1fr)}
+}
+@media(max-width:1200px){
+  :root{--side-w:190px}
+  .kpis{grid-template-columns:repeat(auto-fit,minmax(146px,1fr))}
+}
+@media(max-width:1000px){
+  .cycle{flex-wrap:wrap;gap:9px}
+  .step{flex:1 1 calc(50% - 22px);min-width:140px}
+  .arrow{width:14px}
+}
+/* ---------- tablet e celular: sidebar vira barra inferior ---------- */
+@media(max-width:900px){
+  :root{--side-w:0px}
+  .side{display:none}
+  .main{margin-left:0}
+  .page{padding:15px 14px calc(78px + env(safe-area-inset-bottom));
+    padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+  .top-in{padding:9px 14px;gap:9px;flex-wrap:wrap}
+  .ph h1{font-size:18px}
+  .toast{left:14px;right:14px;bottom:calc(74px + env(safe-area-inset-bottom));transform:translateY(80px);
+    max-width:none}
+  .toast.on{transform:translateY(0)}
+  .toast.up{top:calc(14px + env(safe-area-inset-top));transform:translateY(-80px)}
+  .toast.up.on{transform:translateY(0)}
+  .drawer .pn{width:100%;top:auto;height:90vh;border-left:none;border-top:1px solid var(--line2);
+    border-radius:var(--r-lg) var(--r-lg) 0 0;animation:up .24s cubic-bezier(.4,0,.2,1)}
+  @keyframes up{from{transform:translateY(30px);opacity:.5}to{transform:none;opacity:1}}
+
+  /* registro no celular: próxima vela e botões primeiro */
+  #regRow>div{display:contents}
+  #pnNext{order:1}#pnReg{order:2}#pnCycle{order:3}#pnHour{order:4}
+  #pnReg,#pnCycle,#pnHour{margin-top:0}
+  /* todas as grades de duas colunas viram uma só */
+  .page .grid[style]{grid-template-columns:minmax(0,1fr)!important}
+  .tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:60;
+    background:rgba(9,14,23,.96);backdrop-filter:blur(16px);border-top:1px solid var(--line);
+    padding-bottom:env(safe-area-inset-bottom)}
+  .tb{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:9px 2px 10px;
+    font-size:9px;font-weight:600;letter-spacing:.03em;color:var(--faint);position:relative;transition:var(--t)}
+  .tb svg{width:19px;height:19px;stroke:currentColor;fill:none;stroke-width:1.7;
+    stroke-linecap:round;stroke-linejoin:round}
+  .tb.on{color:var(--cyan)}
+  .tb.on::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+    width:22px;height:2px;border-radius:0 0 3px 3px;background:var(--cyan)}
+}
+@media(max-width:700px){
+  .modal{max-height:calc(100vh - 24px);padding:17px}
+  .assetbar{max-width:100%;width:100%;order:-1}
+  .assetbar .cl{display:none}
+  .pchip .hh{display:none}
+  /* cronograma: dia + estado numa linha, faixa e ações na seguinte */
+  .cronrow{gap:7px;padding:9px 11px}
+  .cronrow .wd{width:auto;flex:1;min-width:0}
+  .cronrow .hr{margin-left:0}
+  .cronrow .rng{width:100%;order:3}
+  .cronrow .rowacts{order:4;margin-left:auto}
+  .cronrow select.sm{flex:1;min-width:0}
+  .kpis{grid-template-columns:1fr 1fr;gap:9px}
+  .kpi .v{font-size:23px}
+  .dgrid{grid-template-columns:repeat(2,1fr)}
+  .regbtn{padding:19px 12px}
+  /* evita o zoom automático do iOS */
+  .dfield input,.chat-in input,.stepper input,.ctx input,.inp{font-size:16px}
+  .ctx .cl{display:none}
+  #topAsset{width:82px}
+  .subs{width:100%;overflow-x:auto;flex-wrap:nowrap;scrollbar-width:none}
+  .subs::-webkit-scrollbar{display:none}
+  .filters{gap:8px}
+  .probsplit .pv{font-size:22px}
+  .msg{max-width:90%}
+  .chat{height:min(64vh,520px)}
+}
+@media(max-width:430px){
+  .step{flex:1 1 calc(50% - 5px)}
+  .arrow{display:none}
+  .cycle{gap:9px}
+  .kpi .v{font-size:21px}
+  .tb{font-size:8.5px}
+}
+@media(hover:none){
+  .kbd{display:none}
+  .stepper button{width:34px}
+}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══════════ SIDEBAR ═══════════ -->
+<aside class="side">
+  <div class="side-brand">
+    <div class="bmark"><span class="glyph"><i></i></span><b>M15 FX</b></div>
+    <div class="tagline">Trading Intelligence Terminal</div>
+  </div>
+
+  <nav class="side-nav" id="nav">
+    <div class="navlab">Terminal</div>
+    <button class="nav on" data-v="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Dashboard</button>
+    <button class="nav" data-v="registro"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M9 15l2 2 4-4"/></svg>Registro</button>
+    <button class="nav" data-v="hist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
+    <div class="navlab">Análise</div>
+    <button class="nav" data-v="quant"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 5-7"/></svg>Análise</button>
+    <button class="nav" data-v="loss"><svg viewBox="0 0 24 24"><path d="M3 6l6 6-6 6"/><path d="M13 17h8M13 12h8M13 7h8"/></svg>Loss</button>
+    <button class="nav" data-v="sinais"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 8-8M7.5 12a4.5 4.5 0 0 1 4.5-4.5"/><circle cx="12" cy="12" r="1.6"/><path d="M12 20v-5"/></svg>Sinais</button>
+    <button class="nav" data-v="ai"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v2M15 12v2M9.5 16.5h5"/></svg>Assistente</button>
+  </nav>
+
+  <div class="side-foot">
+    <button class="nav" id="navImport"><svg viewBox="0 0 24 24"><path d="M12 3v12M8 11l4 4 4-4M4 19h16"/></svg>Importar</button>
+    <button class="nav" id="navExport"><svg viewBox="0 0 24 24"><path d="M12 17V5M8 9l4-4 4 4M4 19h16"/></svg>Exportar</button>
+    <div class="status"><span class="pulse" id="pulse"></span><span id="statusLab">Local</span></div>
+    <button class="userbox" id="btnCloud">
+      <span class="avatar" id="avatar">—</span>
+      <span class="who"><b id="userName">Entrar na nuvem</b><span id="userTier">Sincronização</span></span>
+    </button>
+  </div>
+</aside>
+
+<!-- ═══════════ ÁREA PRINCIPAL ═══════════ -->
+<div class="main">
+
+  <!-- topbar -->
+  <header class="top"><div class="top-in">
+    <div class="assetbar">
+      <span class="cl">Ativo</span>
+      <div class="chips" id="assetChips"></div>
+      <button class="btn sm gear" id="btnPares" title="Gerenciar pares e horários">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>
+        Pares</button>
+    </div>
+    <div class="ctx period"><span class="cl">Período</span>
+      <div class="dfield"><input id="fFrom" type="date" data-ph="Início"><i class="lz"></i><span class="dv"></span></div>
+      <span class="hint">—</span>
+      <div class="dfield"><input id="fTo" type="date" data-ph="Hoje"><i class="lz"></i><span class="dv"></span></div>
+      <button class="btn sm" id="fClear">Tudo</button>
+    </div>
+    <div class="top-right">
+      <span class="clock" id="clock"></span>
+      <button class="synct" id="btnCloud2"><span class="pulse" id="pulse2"></span><span id="syncLab">Local</span></button>
+    </div>
+  </div></header>
+
+  <!-- ═══════════ DASHBOARD ═══════════ -->
+  <section class="page on" id="p-dash">
+    <div class="ph"><h1>Dashboard</h1><p>Performance e comportamento histórico dos seus registros</p></div>
+    <div class="kpis" id="dashKpis"></div>
+
+    <div class="grid mt2" style="grid-template-columns:minmax(0,1.55fr) minmax(0,1fr)" id="dashRow1">
+      <div class="panel">
+        <div class="panel-h"><h2>Evolução da assertividade</h2><span class="hint" id="evoLeg"></span></div>
+        <div class="panel-b" id="evoChart"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h2>Distribuição dos resultados</h2></div>
+        <div class="panel-b" id="donutBox"></div>
+      </div>
+    </div>
+
+    <div class="grid mt2" style="grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)" id="dashRow2">
+      <div class="panel">
+        <div class="panel-h"><h2>Melhores janelas</h2><span class="hint">ordenado por Quality</span></div>
+        <div class="panel-b tight tw" id="tblJanelas"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h2>Atividade recente</h2><span class="hint" id="dashRange"></span></div>
+        <div class="panel-b tight" id="dashRecent"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ REGISTRO ═══════════ -->
+  <section class="page" id="p-registro">
+    <div class="ph"><h1>Registro de Operações</h1><p>Cadastre cada vela e mantenha seu histórico sempre atualizado</p></div>
+
+    <div class="grid" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)" id="regRow">
+      <div>
+        <div class="empty" id="regClosed" style="display:none;margin-bottom:12px"></div>
+        <div class="panel" id="pnCycle">
+          <div class="panel-h">
+            <h2>Ciclo atual</h2>
+            <div class="row">
+              <div class="dfield"><input id="regDate" type="date" data-ph="Escolher dia"><i class="lz"></i><span class="dv"></span></div>
+              <select class="inp" id="regHour" style="width:82px"></select>
+              <button class="btn sm" id="hPrev" title="Hora anterior">←</button>
+              <button class="btn sm" id="hNext" title="Próxima hora">→</button>
+            </div>
+          </div>
+          <div class="panel-b"><div class="cycle" id="cycle"></div></div>
+        </div>
+
+        <div class="panel mt2" id="pnReg">
+          <div class="panel-h"><h2>Registrar resultado</h2><span class="hint" id="regState"></span></div>
+          <div class="panel-b">
+            <div class="regbtns" id="regBtns">
+              <button class="regbtn g" data-c="G"><b>REGISTRAR VERDE</b><span>Ganho</span></button>
+              <button class="regbtn r" data-c="R"><b>REGISTRAR VERMELHO</b><span>Loss</span></button>
+            </div>
+            <div id="regDone" style="display:none">
+              <div class="spread">
+                <div><div class="hint" style="letter-spacing:.14em;text-transform:uppercase;font-weight:700">Resultado da hora</div>
+                  <div id="regResult" style="font-size:21px;font-weight:700;margin-top:4px"></div></div>
+                <button class="btn pri" id="goNext">Próxima hora →</button>
+              </div>
+            </div>
+            <p class="hint mt">Clique em qualquer vela já preenchida para corrigir a cor — resultado, estatísticas e sinais são recalculados na hora. Ao fechar as 4 velas o app avança sozinho.<span class="kbd"><br>Atalhos: <b>V</b> verde · <b>R</b> vermelho · <b>←</b> <b>→</b> troca de hora.</span></p>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel" id="pnNext">
+          <div class="panel-h"><h2>Próxima vela</h2><span class="tag t-dim" id="probTag">—</span></div>
+          <div class="panel-b" id="nextBox"></div>
+        </div>
+        <div class="panel mt2" id="pnHour">
+          <div class="panel-h"><h2>Histórico do horário</h2><span class="hint" id="hourLab"></span></div>
+          <div class="panel-b tight" id="hourBox"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ HISTÓRICO ═══════════ -->
+  <section class="page" id="p-hist">
+    <div class="ph"><h1>Historical Data</h1><p>Explore todo o histórico de forma detalhada</p></div>
+
+    <div class="panel">
+      <div class="panel-h">
+        <div class="filters">
+          <div class="field"><label for="histRange">Período</label>
+            <select class="inp" id="histRange">
+              <option value="0">Tudo</option><option value="7">Últimos 7 dias</option>
+              <option value="15">Últimos 15 dias</option><option value="30" selected>Últimos 30 dias</option>
+              <option value="90">Últimos 90 dias</option>
+            </select></div>
+          <div class="field"><label for="histRes">Resultado</label>
+            <select class="inp" id="histRes">
+              <option value="">Todos</option><option value="direct">Ganho direto</option>
+              <option value="gale1">Gale 1</option><option value="gale2">Gale 2</option>
+              <option value="loss">Loss</option><option value="open">Incompletas</option>
+            </select></div>
+          <div class="field"><label for="histOrder">Ordenar por</label>
+            <select class="inp" id="histOrder"><option value="desc">Data (mais recente)</option><option value="asc">Data (mais antiga)</option></select></div>
+          <div class="field"><label for="histSearch">Buscar horário</label>
+            <input class="inp" id="histSearch" placeholder="ex.: 14" style="width:118px"></div>
+        </div>
+        <span class="hint" id="histCount"></span>
+      </div>
+      <div class="panel-b tight tw" id="tblHist"></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ QUANT LAB ═══════════ -->
+  <section class="page" id="p-quant">
+    <div class="ph"><h1>Análise</h1><p>Como os seus dados se comportam por horário, turno e dia da semana</p></div>
+    <div class="subs" id="quantTabs">
+      <button class="sub on" data-p="q-geral">Visão geral</button>
+      <button class="sub" data-p="q-hora">Por horário</button>
+      <button class="sub" data-p="q-turno">Turno</button>
+      <button class="sub" data-p="q-semana">Dia da semana</button>
+    </div>
+
+    <div class="pane on" id="q-geral">
+      <div class="kpis" id="quantKpis"></div>
+      <div class="grid mt2" style="grid-template-columns:minmax(0,1fr) minmax(0,1.35fr)">
+        <div class="panel">
+          <div class="panel-h"><h2>Distribuição dos resultados</h2></div>
+          <div class="panel-b" id="quantDonut"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-h"><h2>Win rate por horário</h2><span class="hint">barras claras = amostra baixa</span></div>
+          <div class="panel-b" id="quantBars"></div>
+        </div>
+      </div>
+      <div class="panel mt2">
+        <div class="panel-h"><h2>Qualidade dos sinais por tipo de fechamento</h2></div>
+        <div class="panel-b" id="quantQual"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="q-hora">
+      <div class="panel"><div class="panel-h"><h2>Resultado por horário fixo</h2><span class="hint">amostra = dias com esse horário fechado</span></div>
+        <div class="panel-b tight tw" id="tblHora"></div></div>
+    </div>
+    <div class="pane" id="q-turno">
+      <div class="panel"><div class="panel-h"><h2>Desempenho por turno</h2></div>
+        <div class="panel-b tight tw" id="tblTurno"></div></div>
+    </div>
+    <div class="pane" id="q-semana">
+      <div class="panel"><div class="panel-h"><h2>Dia da semana × turno</h2></div>
+        <div class="panel-b tight tw" id="tblSemana"></div></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ SIGNAL INTELLIGENCE ═══════════ -->
+  <section class="page" id="p-sinais">
+    <div class="ph"><h1>Sinais</h1><p>Oportunidades por horário, com análise completa e aferição do que aconteceu depois</p></div>
+    <div class="subs" id="sigTabs">
+      <button class="sub on" data-p="s-gerar">Gerar sinais</button>
+      <button class="sub" data-p="s-hist">Histórico de sinais</button>
+    </div>
+
+    <div class="pane on" id="s-gerar">
+      <div class="panel">
+        <div class="panel-h"><h2>Filtro de confiabilidade</h2><span class="hint" id="sigWinInfo"></span></div>
+        <div class="panel-b">
+          <div class="filters">
+            <div class="field"><label for="sigWin">Janela de análise</label>
+              <select class="inp" id="sigWin">
+                <option value="7">Última semana</option><option value="15">Últimos 15 dias</option>
+                <option value="30" selected>Último mês</option><option value="45">Últimos 45 dias</option>
+                <option value="60">Últimos 2 meses</option><option value="90">Últimos 3 meses</option>
+                <option value="180">Últimos 6 meses</option><option value="365">Último ano</option>
+                <option value="0">Todo o período</option>
+              </select></div>
+            <div class="field"><label for="minRate">Win mínimo</label>
+              <div class="stepper" data-step="5" data-min="50" data-max="100">
+                <button type="button" data-d="-1" aria-label="Diminuir">−</button>
+                <span class="sv"><input id="minRate" type="number" inputmode="numeric" value="75"><span class="su">%+</span></span>
+                <button type="button" data-d="1" aria-label="Aumentar">+</button>
+              </div></div>
+            <div class="field"><label for="minN">Amostra mínima</label>
+              <div class="stepper" data-step="1" data-min="1" data-max="999">
+                <button type="button" data-d="-1" aria-label="Diminuir">−</button>
+                <span class="sv"><input id="minN" type="number" inputmode="numeric" value="5"><span class="su" data-un="dia">dias+</span></span>
+                <button type="button" data-d="1" aria-label="Aumentar">+</button>
+              </div></div>
+            <div class="field"><label for="sigDate">Data alvo</label>
+              <div class="dfield"><input id="sigDate" type="date" data-ph="Escolher dia"><i class="lz"></i><span class="dv"></span></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="kpis mt2" id="sigSummary"></div>
+
+      <div class="panel mt2">
+        <div class="panel-h"><h2>Melhores oportunidades históricas</h2><span class="hint">clique na linha para a análise completa</span></div>
+        <div class="panel-b tight tw" id="tblOps"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="s-hist">
+      <div class="kpis" id="sigStats"></div>
+      <div class="panel mt2">
+        <div class="panel-h"><h2>Sinais emitidos vs. resultado real</h2><button class="btn sm" id="sigClear">Limpar todos</button></div>
+        <div class="panel-b tight tw" id="tblSig"></div>
+      </div>
+    </div>
+
+  </section>
+
+
+  <!-- ═══════════ LOSS ═══════════ -->
+  <section class="page" id="p-loss">
+    <div class="ph"><h1>Loss</h1><p>Tudo que envolve Loss num lugar só: o que costuma acontecer depois, o que fazer, e se teria dado certo</p></div>
+
+    <div class="kpis" id="lossKpis"></div>
+
+    <div class="subs mt2" id="lossTabs">
+      <button class="sub on" data-p="l-planos">Onde operar depois</button>
+      <button class="sub" data-p="l-abertos">Loss em aberto</button>
+      <button class="sub" data-p="l-hist">Aferição dos planos</button>
+      <button class="sub" data-p="l-seq">Loss em sequência</button>
+      <button class="sub" data-p="l-hora">Por horário</button>
+    </div>
+
+    <div class="pane on" id="l-planos">
+      <div class="panel">
+        <div class="panel-h"><h2>Onde operar depois de um Loss</h2><span class="hint" id="planoInfo"></span></div>
+        <div class="panel-b tight tw" id="tblPlano"></div>
+      </div>
+      <div class="panel mt2" id="planoDet" style="display:none">
+        <div class="panel-h"><h2 id="planoDetT">Histórico do plano</h2><button class="btn sm" id="planoFechar">Fechar</button></div>
+        <div class="panel-b tight tw" id="tblPlanoHist"></div>
+      </div>
+      <div class="grid mt2" style="grid-template-columns:minmax(0,1fr)" id="lossRow">
+        <div class="panel">
+          <div class="panel-h"><h2>Esperar quantas horas</h2><span class="hint">retomada no mesmo dia</span></div>
+          <div class="panel-b tight tw" id="tblRet"></div>
+        </div>
+        <div class="panel" id="retBox"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="l-abertos">
+      <div class="panel">
+        <div class="panel-h"><h2>Loss recentes esperando operação</h2><span class="hint" id="planoOpenInfo"></span></div>
+        <div class="panel-b tight" id="planoOpen"></div>
+      </div>
+      <p class="hint mt">Cada linha é um Loss já catalogado cujo horário de operação ainda não chegou. Emitir aqui manda o sinal para a aferição — quando você catalogar aquela hora, o resultado entra sozinho.</p>
+    </div>
+
+    <div class="pane" id="l-hist">
+      <div class="kpis" id="lossSigStats"></div>
+      <div class="panel mt2">
+        <div class="panel-h"><h2>Assertividade por plano</h2><span class="hint">só os sinais já apurados</span></div>
+        <div class="panel-b tight tw" id="tblPlanoAfer"></div>
+      </div>
+      <div class="panel mt2">
+        <div class="panel-h"><h2>Sinais pós-Loss emitidos vs. resultado real</h2><button class="btn sm" id="lossSigClear">Limpar</button></div>
+        <div class="panel-b tight tw" id="tblLossSig"></div>
+      </div>
+    </div>
+
+    <div class="pane" id="l-seq">
+      <div class="panel"><div class="panel-h"><h2>Depois de Loss em sequência</h2><span class="hint">horas contíguas</span></div>
+        <div class="panel-b tight tw" id="tblSeq"></div></div>
+      <p class="hint mt">Cada linha olha para todas as sequências contíguas de Loss no período e mede o que aconteceu na hora imediatamente seguinte.</p>
+    </div>
+
+    <div class="pane" id="l-hora">
+      <div class="panel"><div class="panel-h"><h2>A hora seguinte depois de um Loss</h2><span class="hint">por horário do Loss</span></div>
+        <div class="panel-b tight tw" id="tblLoss"></div></div>
+      <div class="panel mt2"><div class="panel-h"><h2>O mesmo horário no dia seguinte</h2><span class="hint">chance de repetir o Loss</span></div>
+        <div class="panel-b tight tw" id="tblDia"></div></div>
+    </div>
+  </section>
+
+  <!-- ═══════════ M15 AI ═══════════ -->
+  <section class="page" id="p-ai">
+    <div class="ph"><h1>M15 AI</h1><p>Seu copiloto de análise quantitativa — responde só com os seus dados</p></div>
+    <div class="grid" style="grid-template-columns:minmax(0,240px) minmax(0,1fr)" id="aiRow">
+      <div class="panel">
+        <div class="panel-h"><h2>Sugestões rápidas</h2></div>
+        <div class="panel-b"><div class="qsug" id="chatChips">
+          <button data-q="Qual o melhor horário para operar?"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Qual o melhor horário?</button>
+          <button data-q="Analisar os Loss recentes"><svg viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>Analisar Loss recentes</button>
+          <button data-q="Projeção histórica para o próximo dia"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>Projeção do próximo dia</button>
+          <button data-q="Comparar desempenho por dia da semana"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/></svg>Comparar dias da semana</button>
+          <button data-q="Melhor horário depois de um Loss"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4"/></svg>Melhor horário após Loss</button>
+          <button data-q="Qual sinal possui maior quality?"><svg viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8z"/></svg>Maior Quality</button>
+          <button data-q="Qual a probabilidade do Gale 2?"><svg viewBox="0 0 24 24"><path d="M4 20 20 4M8 5.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0zM21 18.5a2.5 2.5 0 1 1-5 0 2.5 2.5 0 0 1 5 0z"/></svg>Probabilidade de Gale 2</button>
+          <button data-q="Assertividade geral"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/></svg>Assertividade geral</button>
+        </div></div>
+      </div>
+      <div class="panel">
+        <div class="panel-h"><h2>Conversa</h2><span class="hint">baseado em dados históricos</span></div>
+        <div class="chat">
+          <div class="chat-log" id="chatLog"></div>
+          <div class="chat-in">
+            <input id="chatIn" placeholder="Faça uma pergunta sobre seus dados…">
+            <button class="send" id="chatSend" aria-label="Enviar"><svg viewBox="0 0 24 24"><path d="m4 12 16-8-6 8 6 8z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="hint mt">Probabilidade histórica não é garantia de resultado futuro.</p>
+  </section>
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══════════ BARRA INFERIOR (celular) ═══════════ -->
+<nav class="tabbar" id="tabbar">
+  <button class="tb on" data-v="dash"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>Início</button>
+  <button class="tb" data-v="registro"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 10h18M9 15l2 2 4-4"/></svg>Registro</button>
+  <button class="tb" data-v="hist"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v4h4"/><path d="M12 7v5l3 2"/></svg>Histórico</button>
+  <button class="tb" data-v="quant"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l3-4 3 3 5-7"/></svg>Análise</button>
+  <button class="tb" data-v="loss"><svg viewBox="0 0 24 24"><path d="M3 6l6 6-6 6"/><path d="M13 17h8M13 12h8M13 7h8"/></svg>Loss</button>
+  <button class="tb" data-v="sinais"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 8-8M7.5 12a4.5 4.5 0 0 1 4.5-4.5"/><circle cx="12" cy="12" r="1.6"/><path d="M12 20v-5"/></svg>Sinais</button>
+  <button class="tb" data-v="ai"><svg viewBox="0 0 24 24"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M12 3v4M9 12v2M15 12v2M9.5 16.5h5"/></svg>M15 AI</button>
+</nav>
+
+<!-- ═══════════ DRAWER DE DETALHE DO SINAL ═══════════ -->
+<div class="drawer" id="drawer">
+  <div class="bd" id="drawerBd"></div>
+  <div class="pn">
+    <div class="drawer-h">
+      <div class="row" style="gap:10px"><span class="hh" id="dwHour">—</span><span class="tag t-cyan" id="dwTag">—</span></div>
+      <button class="btn sm" id="dwClose">Fechar</button>
+    </div>
+    <div class="drawer-b" id="dwBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════ MODAIS ═══════════ -->
+<div class="ovl" id="ovl"><div class="modal">
+  <h3 id="mTitle"></h3><p id="mText"></p>
+  <div class="acts"><button class="btn" id="mCancel">Cancelar</button><button class="btn pri" id="mOk">Confirmar</button></div>
+</div></div>
+
+<div class="ovl" id="ovlCloud"><div class="modal">
+  <h3 id="cTitle">Sincronizar entre aparelhos</h3>
+  <p id="cText">Entre com a mesma conta no computador e no celular.</p>
+  <div class="cform" id="cForm">
+    <button class="gbtn" id="cGoogle"><i class="gmark">G</i>Entrar com a conta Google</button>
+    <div class="cor"><span>ou com e-mail e senha</span></div>
+    <input id="cEmail" type="email" placeholder="seu e-mail" autocomplete="username" spellcheck="false">
+    <input id="cPass" type="password" placeholder="senha (mínimo 6 caracteres)" autocomplete="current-password">
+  </div>
+  <p class="cerr" id="cErr"></p>
+  <div class="acts">
+    <button class="btn" id="cClose">Fechar</button>
+    <button class="btn" id="cNew">Criar conta</button>
+    <button class="btn pri" id="cIn">Entrar</button>
+    <button class="btn" id="cOut" style="display:none">Sair desta conta</button>
+  </div>
+</div></div>
+
+<div class="ovl" id="ovlPar"><div class="modal" style="width:min(560px,100%)">
+  <div class="spread"><h3 id="parTitle">Pares e horários</h3><button class="btn sm" id="parClose">Fechar</button></div>
+  <div id="parList" class="mt"></div>
+  <div id="parEdit" style="display:none">
+    <div class="field mt"><label for="parNome">Nome do par</label>
+      <input class="inp" id="parNome" placeholder="ex.: EUR/USD OTC" spellcheck="false" autocomplete="off"></div>
+
+    <div class="spread mt2"><span class="hint" style="letter-spacing:.14em;text-transform:uppercase;font-weight:700">Cronograma de negociação</span>
+      <span class="hint" id="parCount"></span></div>
+    <div class="sess mt">
+      <div class="row" style="gap:7px">
+        <span class="sesslab">Sessão da semana</span>
+        <span class="hint">abre</span>
+        <select class="inp sm" id="sessDiaA"></select>
+        <span class="hint">às</span>
+        <select class="inp sm" id="sessHoraA"></select>
+        <span class="hint">e fecha</span>
+        <select class="inp sm" id="sessDiaF"></select>
+        <span class="hint">às</span>
+        <select class="inp sm" id="sessHoraF"></select>
+        <button class="btn pri sm" id="sessAplicar">Aplicar</button>
+      </div>
+      <p class="hint mt" id="sessPrev"></p>
+    </div>
+    <div class="row mt" style="gap:6px">
+      <span class="hint">Atalhos:</span>
+      <button class="btn sm" data-quick="otc">OTC · 24h todo dia</button>
+      <button class="btn sm" data-quick="forex">Dom 23:00 → Sex 16:00</button>
+      <button class="btn sm" data-quick="fds">Fechar fim de semana</button>
+    </div>
+    <div class="cron mt" id="parCron"></div>
+    <p class="hint mt">Cada dia tem o próprio horário. A faixa pode virar o dia — <b>23:00 até 17:00</b> vale da noite até a tarde seguinte.
+      O botão <b>⇊</b> copia o horário daquele dia para todos os outros; o <b>⋯</b> abre a seleção hora a hora.</p>
+
+    <div id="parAdv" style="display:none">
+      <div class="spread mt2"><span class="hint" style="letter-spacing:.14em;text-transform:uppercase;font-weight:700" id="parAdvT"></span>
+        <button class="btn sm" id="parAdvClose">Concluir</button></div>
+      <div class="hgrid mt" id="parHoras"></div>
+    </div>
+
+    <div class="acts">
+      <button class="btn" id="parCancel">Cancelar</button>
+      <button class="btn" id="parDel" style="display:none">Excluir par</button>
+      <button class="btn pri" id="parSave">Salvar par</button>
+    </div>
+  </div>
+  <div id="parFoot" class="acts"><button class="btn pri" id="parNovo">Adicionar par</button></div>
+</div></div>
+
+<input type="file" id="fileIn" accept="application/json" style="display:none">
+<div class="toast" id="toast"></div>
+<script>
+/* ═══════════════════════════════════════════════════════════
+   M15 FX · Trading Intelligence Terminal
+   Modelo de dados (inalterado, compatível com backups antigos):
+   days[YYYY-MM-DD][hora 0-23] = [c0,c1,c2,c3]   ("G" | "R" | null)
+   ═══════════════════════════════════════════════════════════ */
+const KEY='ciclo15.v1';
+const ROLES=['Referência','Entrada','Gale 1','Gale 2'];
+const RES={direct:'Ganho direto',gale1:'Ganho no Gale 1',gale2:'Ganho no Gale 2',loss:'Loss'};
+const RESS={direct:'Direto',gale1:'Gale 1',gale2:'Gale 2',loss:'Loss'};
+const RESK=['direct','gale1','gale2','loss'];
+const TURNOS=[['Madrugada',0,5],['Manhã',6,11],['Tarde',12,17],['Noite',18,23]];
+const WD=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const CORES={direct:'var(--green)',gale1:'var(--blue)',gale2:'var(--yellow)',loss:'var(--red)'};
+
+const ALLH=Array.from({length:24},(_,i)=>i);
+const ALLWD=[0,1,2,3,4,5,6];
+/* hoursWd = cronograma por dia da semana: {0:[horas do domingo], ... 6:[sábado]} */
+function mapaHoras(horas){const m={};ALLWD.forEach(w=>m[w]=(horas||ALLH).slice());return m;}
+function novoPar(nome,horas,hwd){
+  return {name:nome,hours:(horas||ALLH).slice(),
+    hoursWd:hwd?normWd(hwd):mapaHoras(horas),
+    days:{},signals:[],cursor:{date:'',hour:0}};
+}
+function normWd(m){
+  const out={};ALLWD.forEach(w=>{
+    const v=m&&m[w];out[w]=Array.isArray(v)?v.slice().filter(h=>h>=0&&h<24).sort((a,b)=>a-b):[];});
+  return out;
+}
+function uniaoWd(m){const s={};ALLWD.forEach(w=>(m[w]||[]).forEach(h=>s[h]=1));
+  return Object.keys(s).map(Number).sort((a,b)=>a-b);}
+let D={v:2,active:'EUR/USD',assets:{'EUR/USD':novoPar('EUR/USD')}};
+let memoryOnly=false;
+
+/* ---------- par ativo ---------- */
+function A(){
+  if(!D.assets||!Object.keys(D.assets).length){D.assets={'EUR/USD':novoPar('EUR/USD')};D.active='EUR/USD';}
+  let a=D.assets[D.active];
+  if(!a){D.active=Object.keys(D.assets)[0];a=D.assets[D.active];}
+  if(!a.hoursWd)a.hoursWd=mapaHoras(a.hours&&a.hours.length?a.hours:ALLH);
+  else a.hoursWd=normWd(a.hoursWd);
+  a.hours=uniaoWd(a.hoursWd);
+  if(!a.hours.length){a.hoursWd=mapaHoras(ALLH);a.hours=ALLH.slice();}
+  if(!a.signals)a.signals=[];
+  if(!a.days)a.days={};
+  if(!a.cursor)a.cursor={date:'',hour:0};
+  return a;
+}
+function pares(){return Object.keys(D.assets);}
+/* união de todas as horas do par — usada nas análises genéricas */
+function horasDe(a){a=a||A();const u=uniaoWd(a.hoursWd||mapaHoras(a.hours));return u.length?u:ALLH;}
+/* horas abertas num dia específico (respeita o dia da semana) */
+function horasDoDia(date,a){a=a||A();const m=a.hoursWd||mapaHoras(a.hours);return (m[wdOf(date)]||[]).slice();}
+function diaAberto(date,a){return horasDoDia(date,a).length>0;}
+function negociavel(date,h,a){return horasDoDia(date,a).indexOf(+h)>=0;}
+/* caminha k posições dentro do cronograma do par: pula horas fechadas e dias fechados */
+function stepTrad(date,hour,k){
+  const a=A(),m=a.hoursWd||mapaHoras(a.hours);
+  if(!k)return [date,hour];
+  const uni=uniaoWd(m);
+  if(!uni.length)return shift(date,hour,k);
+  let d=date,h=hour,dir=k>0?1:-1,falta=Math.abs(k),g=0;
+  while(falta>0&&g<24*45){
+    const s=shift(d,h,dir);d=s[0];h=s[1];g++;
+    if((m[wdOf(d)]||[]).indexOf(h)>=0)falta--;
+  }
+  return [d,h];
+}
+/* hora válida para aquele dia; se o dia estiver fechado devolve a hora pedida */
+function horaValida(h,date){
+  const hs=date?horasDoDia(date):horasDe();
+  if(!hs.length)return h;
+  return hs.indexOf(+h)>=0?+h:hs[0];
+}
+/* primeiro dia aberto a partir de date (inclusive) */
+function proximoDiaAberto(date,dir){
+  let d=date;
+  for(let i=0;i<400;i++){if(diaAberto(d))return d;d=addDays(d,dir||1);}
+  return date;
+}
+const WD_ABREV=['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+/* migra o formato antigo (um único par) para o novo */
+function migrate(o){
+  if(o&&o.assets&&typeof o.assets==='object'&&Object.keys(o.assets).length){
+    o.v=2;o.active=o.active&&o.assets[o.active]?o.active:Object.keys(o.assets)[0];
+    Object.keys(o.assets).forEach(k=>{const a=o.assets[k];
+      a.name=a.name||k;
+      a.hoursWd=a.hoursWd?normWd(a.hoursWd):mapaHoras((a.hours&&a.hours.length)?a.hours:ALLH);
+      a.hours=uniaoWd(a.hoursWd);if(!a.hours.length){a.hoursWd=mapaHoras(ALLH);a.hours=ALLH.slice();}
+      a.days=a.days||{};a.signals=a.signals||[];a.cursor=a.cursor||{date:'',hour:0};});
+    return o;
+  }
+  const nome=(o&&o.asset)||'EUR/USD';
+  const a=novoPar(nome);
+  if(o){a.days=o.days||{};a.signals=o.signals||[];a.cursor=o.cursor||{date:'',hour:0};}
+  const out={v:2,active:nome,assets:{}};out.assets[nome]=a;
+  return out;
+}
+
+/* ---------- datas (sem armadilha de fuso) ---------- */
+const p2=n=>String(n).padStart(2,'0');
+const iso=d=>d.getFullYear()+'-'+p2(d.getMonth()+1)+'-'+p2(d.getDate());
+const todayISO=()=>iso(new Date());
+function parseISO(s){const a=s.split('-').map(Number);return new Date(a[0],a[1]-1,a[2]);}
+function addDays(s,n){const d=parseISO(s);d.setDate(d.getDate()+n);return iso(d);}
+function wdOf(s){return parseISO(s).getDay();}
+const MESES=['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+function fmtDate(s){const d=parseISO(s);return p2(d.getDate())+' '+MESES[d.getMonth()]+' '+d.getFullYear();}
+function fmtShort(s){const d=parseISO(s);return p2(d.getDate())+'/'+p2(d.getMonth()+1);}
+function shift(date,hour,k){let h=hour+k,d=date;while(h>23){h-=24;d=addDays(d,1);}while(h<0){h+=24;d=addDays(d,-1);}return[d,h];}
+function turnoOf(h){for(const t of TURNOS)if(h>=t[1]&&h<=t[2])return t[0];return '';}
+const pct=(a,b)=>b>0?(a/b*100):0;
+const f1=v=>(Math.round(v*10)/10).toFixed(1)+'%';
+const f0=v=>Math.round(v)+'%';
+
+/* ---------- persistência ---------- */
+function save(quiet){
+  if(!quiet&&typeof syncQueue==='function')syncQueue();
+  try{localStorage.setItem(KEY,JSON.stringify(D));}
+  catch(e){if(!memoryOnly){memoryOnly=true;console.warn('Sem armazenamento local — dados só na sessão. Use Exportar.');}}
+}
+function load(){
+  try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o&&(o.days||o.assets)){D=migrate(o);return;}}}
+  catch(e){memoryOnly=true;}
+}
+
+/* ---------- acesso ---------- */
+function cell(date,hour,create){
+  if(!A().days[date]){if(!create)return null;A().days[date]={};}
+  const k=String(hour);
+  if(!A().days[date][k]){if(!create)return null;A().days[date][k]=[null,null,null,null];}
+  return A().days[date][k];
+}
+function resultOf(c){
+  if(!c||c.some(x=>!x))return null;
+  const r=c[0];
+  if(c[1]===r)return 'direct';
+  if(c[2]===r)return 'gale1';
+  if(c[3]===r)return 'gale2';
+  return 'loss';
+}
+function nextEmpty(c){for(let i=0;i<4;i++)if(!c[i])return i;return -1;}
+
+/* ---------- coleta ---------- */
+function allRecords(){
+  const out=[];
+  for(const date of Object.keys(A().days)){
+    for(const k of Object.keys(A().days[date])){
+      const c=A().days[date][k],hour=+k,res=resultOf(c);
+      out.push({date,hour,c,result:res,turno:turnoOf(hour),wd:wdOf(date)});
+    }
+  }
+  out.sort((a,b)=>a.date===b.date?a.hour-b.hour:(a.date<b.date?-1:1));
+  return out;
+}
+let FILTER={from:'',to:''};
+function inFilter(date){
+  if(FILTER.from&&date<FILTER.from)return false;
+  if(FILTER.to&&date>FILTER.to)return false;
+  return true;
+}
+function records(){return allRecords().filter(r=>inFilter(r.date));}
+function done(){return records().filter(r=>r.result);}
+
+/* ---------- estatísticas base ---------- */
+function tally(list){
+  const s={n:0,direct:0,gale1:0,gale2:0,loss:0};
+  list.forEach(r=>{if(r.result){s.n++;s[r.result]++;}});
+  s.win=s.direct+s.gale1+s.gale2;
+  s.rate=pct(s.win,s.n);
+  return s;
+}
+function byHour(list){
+  const m={};for(let h=0;h<24;h++)m[h]=[];
+  list.forEach(r=>{if(r.result)m[r.hour].push(r);});
+  const out=[];for(let h=0;h<24;h++){const t=tally(m[h]);t.hour=h;t.list=m[h];out.push(t);}
+  return out;
+}
+function byTurno(list){
+  return TURNOS.map(t=>{const sub=list.filter(r=>r.hour>=t[1]&&r.hour<=t[2]);const s=tally(sub);
+    s.name=t[0];s.range=p2(t[1])+'h–'+p2(t[2])+'h';s.list=sub;return s;});
+}
+function byWeekdayTurno(list){
+  const out=[];
+  for(let w=0;w<7;w++){
+    const sub=list.filter(r=>r.wd===w);
+    out.push({wd:w,name:WD[w],total:tally(sub),list:sub,
+      turnos:TURNOS.map(t=>{const s=tally(sub.filter(r=>r.hour>=t[1]&&r.hour<=t[2]));s.name=t[0];return s;})});
+  }
+  return out;
+}
+function indexOf(list){const m={};list.forEach(r=>m[r.date+'|'+r.hour]=r);return m;}
+function byDay(list){
+  const m={};list.forEach(r=>{(m[r.date]=m[r.date]||[]).push(r);});
+  return Object.keys(m).sort().map(d=>({date:d,list:m[d],t:tally(m[d])}));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SIGNAL QUALITY SCORE — 0 a 100
+   Fórmula aberta, cada parcela documentada. Nada arbitrário.
+
+   +45  Win rate ................ (win/n) × 45
+   +22  Independência de gale .... (direct/win) × 22
+   +18  Robustez da amostra ...... 18 × (1 − e^(−n/16))
+                                   n=5→~14%  n=16→63%  n=35→~89%  n=60→~97% do teto
+   +15  Consistência ............. compara a metade antiga com a recente;
+                                   0pp de diferença = 15, 40pp ou mais = 0.
+                                   Sem base (n<6) recebe 6 — nem prêmio nem punição.
+   −12  Dependência de Gale 2 .... (gale2/win) × 12
+   ═══════════════════════════════════════════════════════════ */
+function qualityOf(list){
+  const t=tally(list);
+  if(!t.n)return {score:0,t,drift:null,parts:null};
+  const winShare=t.win/t.n;
+  const directShare=t.win?t.direct/t.win:0;
+  const g2Share=t.win?t.gale2/t.win:0;
+
+  const pWin=winShare*45;
+  const pDirect=directShare*22;
+  const pSample=18*(1-Math.exp(-t.n/16));
+
+  let pCons=6,drift=null;
+  if(t.n>=6){
+    const ord=list.filter(r=>r.result);
+    const half=Math.floor(ord.length/2);
+    const a=tally(ord.slice(0,half)),b=tally(ord.slice(half));
+    drift=b.rate-a.rate;
+    pCons=Math.max(0,15*(1-Math.min(40,Math.abs(drift))/40));
+  }
+  const pG2=g2Share*12;
+  const score=Math.max(0,Math.min(100,pWin+pDirect+pSample+pCons-pG2));
+  return {score:Math.round(score),t,drift,
+    parts:{win:pWin,direct:pDirect,sample:pSample,cons:pCons,g2:-pG2}};
+}
+function qColor(q){return q>=80?'var(--green)':q>=65?'var(--cyan)':q>=50?'var(--yellow)':'var(--red)';}
+function qLabel(q){return q>=80?'EXCELENTE':q>=65?'FORTE':q>=50?'BOM':q>=35?'FRACO':'EVITAR';}
+
+/* ---------- confiança estatística (Wilson) ---------- */
+function wilson(w,n){
+  if(!n)return[0,0];
+  const z=1.96,p=w/n,d=1+z*z/n;
+  const c=(p+z*z/(2*n))/d;
+  const m=z*Math.sqrt(p*(1-p)/n+z*z/(4*n*n))/d;
+  return[Math.max(0,(c-m)*100),Math.min(100,(c+m)*100)];
+}
+const CONF=['MUITO BAIXA','BAIXA','MODERADA','ALTA','MUITO ALTA'];
+const CONFT=['t-red','t-red','t-amber','t-cyan','t-green'];
+function confidence(n,win){
+  const iv=wilson(win,n),largura=iv[1]-iv[0];
+  let lvl=n<3?0:n<6?1:n<12?2:n<25?3:4;
+  if(largura>45&&lvl>1)lvl=1;
+  else if(largura>32&&lvl>2)lvl=2;
+  return {lvl,lo:iv[0],hi:iv[1],largura,label:CONF[lvl],cls:CONFT[lvl]};
+}
+
+/* ---------- análises derivadas ---------- */
+function afterLoss(list){
+  const idx=indexOf(list),out=[];
+  horasDe().forEach(h=>{
+    const bucket=[];
+    list.forEach(r=>{
+      if(r.hour!==h||r.result!=='loss')return;
+      const tg=stepTrad(r.date,r.hour,1),nx=idx[tg[0]+'|'+tg[1]];
+      if(nx&&nx.result)bucket.push(nx);
+    });
+    const t=tally(bucket);t.hour=h;t.prox=stepTrad('2026-01-01',h,1)[1];out.push(t);
+  });
+  return out;
+}
+function nextDay(list){
+  const idx=indexOf(list),out=[];
+  for(let h=0;h<24;h++){
+    const row={hour:h,pts:[]};
+    [[-1,'1h antes'],[0,'mesmo horário'],[1,'1h depois']].forEach(o=>{
+      let n=0,loss=0;
+      list.forEach(r=>{
+        if(r.hour!==h||r.result!=='loss')return;
+        const tg=o[0]?stepTrad(addDays(r.date,1),h,o[0]):[addDays(r.date,1),h];
+        const nx=idx[tg[0]+'|'+tg[1]];
+        if(nx&&nx.result){n++;if(nx.result==='loss')loss++;}
+      });
+      row.pts.push({label:o[1],n,loss,p:pct(loss,n)});
+    });
+    out.push(row);
+  }
+  return out;
+}
+/* depois de k Loss contíguos, o que aconteceu na hora seguinte */
+function afterKLosses(list,k){
+  const idx=indexOf(list),bucket=[];
+  list.forEach(r=>{
+    if(r.result!=='loss')return;
+    let ok=true;
+    for(let i=0;i<k;i++){
+      const tg=stepTrad(r.date,r.hour,i),x=idx[tg[0]+'|'+tg[1]];
+      if(!x||x.result!=='loss'){ok=false;break;}
+    }
+    if(!ok)return;
+    /* só conta o início da sequência, para não contar a mesma janela duas vezes */
+    const pv=stepTrad(r.date,r.hour,-1),prev=idx[pv[0]+'|'+pv[1]];
+    if(prev&&prev.result==='loss')return;
+    const tg=stepTrad(r.date,r.hour,k),nx=idx[tg[0]+'|'+tg[1]];
+    if(nx&&nx.result)bucket.push(nx);
+  });
+  return bucket;
+}
+function lossStreaks(list){
+  const out=[];
+  for(let k=1;k<=4;k++){
+    const b=afterKLosses(list,k);
+    if(!b.length&&k>1)break;
+    out.push(Object.assign(qualityOf(b),{after:k,list:b}));
+  }
+  return out;
+}
+function resumeAfterLoss(list){
+  const idx=indexOf(list),out=[];
+  for(let k=1;k<=4;k++){
+    const bucket=[];
+    list.forEach(r=>{
+      if(r.result!=='loss')return;
+      const tg=stepTrad(r.date,r.hour,k),nx=idx[tg[0]+'|'+tg[1]];
+      if(nx&&nx.result)bucket.push(nx);
+    });
+    const q=qualityOf(bucket);q.offset=k;q.list=bucket;out.push(q);
+  }
+  return out;
+}
+const PLANOS=[
+  {k:'d0h1', lab:'No mesmo dia, 1 hora depois',       curto:'Hoje +1h',      dd:0, dh:1},
+  {k:'d1h0', lab:'No dia seguinte, no mesmo horário', curto:'Amanhã mesma h', dd:1, dh:0},
+  {k:'d1hm', lab:'No dia seguinte, 1 hora antes',     curto:'Amanhã −1h',    dd:1, dh:-1},
+  {k:'d1h1', lab:'No dia seguinte, 1 hora depois',    curto:'Amanhã +1h',    dd:1, dh:1}
+];
+function planoAlvo(p,date,hour){
+  if(!p.dd)return stepTrad(date,hour,p.dh);
+  const d=addDays(date,p.dd);
+  return p.dh?stepTrad(d,hour,p.dh):[d,hour];
+}
+function planosAposLoss(list){
+  const idx=indexOf(list);
+  return PLANOS.map(p=>{
+    const ev=[];
+    list.forEach(r=>{
+      if(r.result!=='loss')return;
+      const tg=planoAlvo(p,r.date,r.hour),nx=idx[tg[0]+'|'+tg[1]];
+      ev.push({ld:r.date,lh:r.hour,ad:tg[0],ah:tg[1],res:(nx&&nx.result)||null});
+    });
+    ev.sort((a,b)=>a.ld===b.ld?b.lh-a.lh:(a.ld<b.ld?1:-1));
+    const cron=ev.filter(e=>e.res).slice().reverse().map(e=>({result:e.res}));
+    const q=qualityOf(cron);
+    /* maior sequência de Loss seguidos dentro do plano */
+    let run=0,maxRun=0;
+    cron.forEach(e=>{if(e.result==='loss'){run++;maxRun=Math.max(maxRun,run);}else run=0;});
+    /* desempenho recente: últimas 10 ocorrências */
+    const rec=tally(cron.slice(-10));
+    return Object.assign({},p,{ev,testados:cron.length,abertos:ev.length-cron.length,
+      t:q.t,q:q.score,drift:q.drift,maxRun,rec});
+  });
+}
+function pattern(prefix,skipKey){
+  let g=0,r=0;
+  for(const date of Object.keys(A().days)){
+    if(!inFilter(date))continue;
+    for(const k of Object.keys(A().days[date])){
+      if(date+'|'+k===skipKey)continue;
+      const c=A().days[date][k],i=prefix.length;
+      if(!c[i])continue;
+      let ok=true;
+      for(let j=0;j<i;j++)if(c[j]!==prefix[j]){ok=false;break;}
+      if(!ok)continue;
+      if(c[i]==='G')g++;else r++;
+    }
+  }
+  return {g,r,n:g+r};
+}
+function bestTurno(list){const t=byTurno(list).filter(x=>x.n>0);t.sort((a,b)=>b.rate-a.rate);return t[0]||null;}
+function bestDayTurno(list){
+  const out=[];
+  byWeekdayTurno(list).forEach(row=>row.turnos.forEach(t=>{if(t.n>0)out.push({label:row.name+' · '+t.name,rate:t.rate,n:t.n,s:t});}));
+  out.sort((a,b)=>b.rate-a.rate||b.n-a.n);
+  return out;
+}
+function rankedHours(list,minN,minRate){
+  return byHour(list).filter(h=>h.n>=minN&&h.rate>=minRate)
+    .map(h=>{const q=qualityOf(h.list);return Object.assign(h,{q:q.score,drift:q.drift});})
+    .sort((a,b)=>b.q-a.q||b.n-a.n);
+}
+function hoursWithQuality(list){
+  return byHour(list).filter(h=>h.n>0).map(h=>{
+    const q=qualityOf(h.list);
+    return Object.assign(h,{q:q.score,drift:q.drift,conf:confidence(h.n,h.win)});
+  });
+}
+
+/* ═══════════ INTERPRETAÇÃO — só afirma o que os dados sustentam ═══════════ */
+function readSignal(hour,list){
+  const bh=byHour(list),s=bh[hour];
+  if(!s.n)return null;
+  const geral=tally(list);
+  const q=qualityOf(s.list);
+  const conf=confidence(s.n,s.win);
+  const direct=pct(s.direct,s.n),g1=pct(s.gale1,s.n),g2=pct(s.gale2,s.n),loss=pct(s.loss,s.n);
+  const mediaGeral=geral.rate,mediaLoss=pct(geral.loss,geral.n),mediaG2=pct(geral.gale2,geral.n);
+  const turno=byTurno(list).filter(t=>t.name===turnoOf(hour))[0];
+  const pros=[],cons=[];
+
+  if(s.rate>mediaGeral+3)pros.push('Win rate de <b>'+f1(s.rate)+'</b>, acima da média do período ('+f1(mediaGeral)+').');
+  if(direct>=45)pros.push('<b>'+f1(direct)+'</b> das ocorrências fecharam no ganho direto, sem precisar de gale.');
+  if(g2<mediaG2&&s.win)pros.push('Dependência de Gale 2 abaixo da média ('+f1(g2)+' contra '+f1(mediaG2)+').');
+  if(loss<mediaLoss-2)pros.push('Loss de <b>'+f1(loss)+'</b>, abaixo da média do período ('+f1(mediaLoss)+').');
+  if(q.drift!==null&&q.drift>=5)pros.push('Desempenho recente <b>melhor</b> que o antigo (+'+f1(Math.abs(q.drift)).replace('%','')+' pontos na metade mais nova).');
+  else if(q.drift!==null&&Math.abs(q.drift)<=5)pros.push('Comportamento estável ao longo do período — as duas metades do histórico batem.');
+  if(s.n>=25)pros.push('Amostra robusta: <b>'+s.n+'</b> ocorrências catalogadas.');
+  else if(s.n>=12)pros.push('Amostra adequada: '+s.n+' ocorrências.');
+  if(turno&&turno.n>=5&&s.rate>turno.rate+3)pros.push('Este horário rende mais que a média do turno '+turno.name+' ('+f1(turno.rate)+').');
+
+  if(loss>0)cons.push('Loss histórico de <b>'+f1(loss)+'</b> — '+s.loss+' de '+s.n+' ocorrências.');
+  if(g2>mediaG2&&g2>0)cons.push('Gale 2 acima da média do período ('+f1(g2)+' contra '+f1(mediaG2)+') — o ganho depende mais da terceira tentativa.');
+  if(g1+g2>direct&&s.win)cons.push('A maior parte dos ganhos só veio com gale ('+f1(g1+g2)+' contra '+f1(direct)+' direto).');
+  if(s.n<10)cons.push('Amostra pequena (<b>'+s.n+'</b>) — o percentual observado ainda pode mudar bastante.');
+  if(q.drift!==null&&q.drift<=-5)cons.push('Desempenho recente <b>piorando</b>: a metade mais nova do histórico rende '+f1(Math.abs(q.drift)).replace('%','')+' pontos a menos.');
+  if(conf.largura>30)cons.push('Intervalo de confiança largo ('+f0(conf.lo)+' a '+f0(conf.hi)+') — pouca precisão estatística.');
+  if(s.rate<mediaGeral-3)cons.push('Win rate abaixo da média do período.');
+
+  return {hour,s,q:q.score,parts:q.parts,drift:q.drift,conf,direct,g1,g2,loss,pros,cons,geral,turno};
+}
+/* o que mais o histórico indica para um horário */
+function contextOf(hour,list){
+  const idx=indexOf(list),bh=byHour(list);
+  const proxH=stepTrad('2026-01-01',hour,1)[1];
+  const prox=bh[proxH];prox.hour=proxH;
+  const posLoss=[1,2,3].map(k=>{
+    const bucket=[];
+    list.forEach(r=>{
+      if(r.hour!==hour||r.result!=='loss')return;
+      const tg=stepTrad(r.date,r.hour,k),nx=idx[tg[0]+'|'+tg[1]];
+      if(nx&&nx.result)bucket.push(nx);
+    });
+    return Object.assign(tally(bucket),{k});
+  });
+  const amanha=(()=>{
+    const bucket=[];
+    list.forEach(r=>{
+      if(r.hour!==hour)return;
+      const tg=[addDays(r.date,1),hour],nx=idx[tg[0]+'|'+tg[1]];
+      if(nx&&nx.result)bucket.push(nx);
+    });
+    return tally(bucket);
+  })();
+  const turno=byTurno(list).filter(t=>t.name===turnoOf(hour))[0];
+  const semana=byWeekdayTurno(list).map(w=>({name:w.name,t:tally(w.list.filter(r=>r.hour===hour))}))
+    .filter(w=>w.t.n>0).sort((a,b)=>b.t.rate-a.t.rate);
+  return {prox,posLoss,amanha,turno,semana};
+}
+</script>
+<script>
+/* ═══════════ helpers de DOM ═══════════ */
+const $=s=>document.querySelector(s);
+const $$=s=>Array.from(document.querySelectorAll(s));
+function el(tag,cls,html){const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;return e;}
+function toast(m){
+  const t=$('#toast');t.textContent=m;
+  t.classList.toggle('up',!!document.querySelector('.ovl.on,.drawer.on'));
+  t.classList.add('on');clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('on'),2400);
+}
+let _ok=null;
+function confirmBox(title,text,fn){$('#mTitle').textContent=title;$('#mText').innerHTML=text;_ok=fn;$('#ovl').classList.add('on');}
+$('#mCancel').onclick=()=>{$('#ovl').classList.remove('on');_ok=null;};
+$('#ovl').onclick=e=>{if(e.target===$('#ovl'))$('#mCancel').click();};
+$('#mOk').onclick=()=>{const f=_ok;$('#ovl').classList.remove('on');_ok=null;if(f)f();};
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if($('#ovl').classList.contains('on'))$('#mCancel').click();
+  else if($('#ovlCloud').classList.contains('on'))$('#ovlCloud').classList.remove('on');
+  else if($('#drawer').classList.contains('on'))closeDrawer();
+});
+const pctCell=(v,n)=>n>0?f1(v):'—';
+function noData(msg,sub){return '<div class="empty"><b>'+msg+'</b>'+(sub||'')+'</div>';}
+function tbl(head,rows,note,sub){
+  const body=Array.isArray(rows)?rows.join(''):(rows||'');
+  if(!body)return noData(note||'Dados insuficientes',sub||'Catalogue mais horas para esta análise ganhar sentido.');
+  return '<table><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table>';
+}
+function kpi(k,v,s,opt){
+  opt=opt||{};
+  return '<div class="kpi'+(opt.lead?' lead':'')+'">'+
+    (opt.ring!=null?'<span class="ring">'+ringSVG(opt.ring,opt.ringColor||'var(--cyan)')+'</span>':'')+
+    (opt.spark?'<span class="spark">'+opt.spark+'</span>':'')+
+    '<div class="k">'+k+'</div><div class="v'+(opt.vc?' '+opt.vc:'')+'">'+v+'</div>'+
+    '<div class="s">'+(s||'')+'</div></div>';
+}
+function segBar(t,tall){
+  if(!t.n)return '<div class="seg'+(tall?' tall':'')+'"></div>';
+  return '<div class="seg'+(tall?' tall':'')+'">'+RESK.map(k=>
+    '<i style="width:'+pct(t[k],t.n)+'%;background:'+CORES[k]+'"></i>').join('')+'</div>';
+}
+function segLegend(t){
+  return '<div class="legend">'+RESK.map(k=>
+    '<div><span class="dot" style="background:'+CORES[k]+'"></span>'+RESS[k]+
+    ' <b class="mono">'+pctCell(pct(t[k],t.n),t.n)+'</b> <span class="hint">('+t[k]+')</span></div>').join('')+'</div>';
+}
+function qBadge(q){return '<span class="qbadge" style="color:'+qColor(q)+';border-color:'+qColor(q)+'44;background:'+qColor(q)+'14">'+q+'</span>';}
+function confTag(c){return '<span class="tag '+c.cls+'">'+c.label+'</span>';}
+
+/* ═══════════ gráficos SVG ═══════════ */
+function ringSVG(v,color,size){
+  size=size||34;const r=13,c=2*Math.PI*r;
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 34 34">'+
+    '<circle cx="17" cy="17" r="'+r+'" fill="none" stroke="var(--panel3)" stroke-width="3.5"/>'+
+    '<circle cx="17" cy="17" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="3.5" stroke-linecap="round"'+
+    ' stroke-dasharray="'+c+'" stroke-dashoffset="'+(c*(1-Math.max(0,Math.min(100,v))/100))+'"'+
+    ' transform="rotate(-90 17 17)"/></svg>';
+}
+function sparkSVG(vals,color){
+  if(!vals||vals.length<2)return '';
+  const w=200,h=26,mx=Math.max.apply(null,vals),mn=Math.min.apply(null,vals),rg=(mx-mn)||1;
+  const pts=vals.map((v,i)=>[(i/(vals.length-1))*w,h-((v-mn)/rg)*(h-4)-2]);
+  const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  return '<svg viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none" style="width:100%;height:100%">'+
+    '<path d="'+d+' L'+w+' '+h+' L0 '+h+' Z" fill="'+color+'" opacity=".14"/>'+
+    '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>';
+}
+function donutSVG(t,center,sub){
+  if(!t.n)return noData('Dados insuficientes','Nenhuma hora completa no período.');
+  const r=54,c=2*Math.PI*r;let off=0;
+  const arcs=RESK.filter(k=>t[k]>0).map(k=>{
+    const frac=t[k]/t.n,len=c*frac;
+    const s='<circle cx="70" cy="70" r="'+r+'" fill="none" stroke="'+CORES[k]+'" stroke-width="17"'+
+      ' stroke-dasharray="'+len.toFixed(2)+' '+(c-len).toFixed(2)+'" stroke-dashoffset="'+(-off).toFixed(2)+'"'+
+      ' transform="rotate(-90 70 70)"><title>'+RES[k]+' — '+f1(pct(t[k],t.n))+'</title></circle>';
+    off+=len;return s;
+  }).join('');
+  return '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;justify-content:center">'+
+    '<svg width="150" height="150" viewBox="0 0 140 140" style="flex-shrink:0">'+
+    '<circle cx="70" cy="70" r="'+r+'" fill="none" stroke="var(--panel3)" stroke-width="17"/>'+arcs+
+    '<text x="70" y="66" text-anchor="middle" fill="var(--txt)" font-size="24" font-weight="700" font-family="Inter">'+center+'</text>'+
+    '<text x="70" y="83" text-anchor="middle" fill="var(--faint)" font-size="9" font-family="Inter" letter-spacing="1.4">'+sub+'</text>'+
+    '</svg><div style="flex:1;min-width:150px">'+RESK.map(k=>
+      '<div class="spread" style="padding:5px 0;border-bottom:1px solid var(--line)">'+
+      '<span style="display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--dim)">'+
+      '<span class="dot" style="background:'+CORES[k]+'"></span>'+RESS[k]+'</span>'+
+      '<span class="mono" style="font-weight:600;color:'+CORES[k]+'">'+pctCell(pct(t[k],t.n),t.n)+
+      ' <span class="hint">('+t[k]+')</span></span></div>').join('')+'</div></div>';
+}
+function lineSVG(days){
+  if(days.length<2)return noData('Dados insuficientes','A evolução aparece a partir de dois dias catalogados.');
+  const w=760,h=210,pl=34,pr=10,pt=12,pb=24;
+  const iw=w-pl-pr,ih=h-pt-pb;
+  const pts=days.map((d,i)=>({x:pl+(days.length===1?iw/2:(i/(days.length-1))*iw),
+    y:pt+ih-(d.t.rate/100)*ih,rate:d.t.rate,date:d.date,n:d.t.n}));
+  const line=pts.map((p,i)=>(i?'L':'M')+p.x.toFixed(1)+' '+p.y.toFixed(1)).join(' ');
+  /* média móvel de 7 dias */
+  const mm=days.map((d,i)=>{
+    const sl=days.slice(Math.max(0,i-6),i+1);
+    let w0=0,n0=0;sl.forEach(x=>{w0+=x.t.win;n0+=x.t.n;});
+    return pct(w0,n0);
+  });
+  const mline=mm.map((v,i)=>(i?'L':'M')+pts[i].x.toFixed(1)+' '+(pt+ih-(v/100)*ih).toFixed(1)).join(' ');
+  const grid=[0,25,50,75,100].map(v=>{
+    const y=pt+ih-(v/100)*ih;
+    return '<line x1="'+pl+'" y1="'+y+'" x2="'+(w-pr)+'" y2="'+y+'" stroke="var(--line)" stroke-width="1"/>'+
+      '<text x="'+(pl-7)+'" y="'+(y+3.5)+'" text-anchor="end" fill="var(--faint)" font-size="9" font-family="JetBrains Mono">'+v+'%</text>';
+  }).join('');
+  const step=Math.max(1,Math.ceil(days.length/7));
+  const xlab=days.map((d,i)=>i%step===0||i===days.length-1?
+    '<text x="'+pts[i].x+'" y="'+(h-7)+'" text-anchor="middle" fill="var(--faint)" font-size="9" font-family="JetBrains Mono">'+fmtShort(d.date)+'</text>':'').join('');
+  const dots=pts.map(p=>'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="2.6" fill="var(--green)"><title>'+
+    fmtDate(p.date)+' — '+f1(p.rate)+' em '+p.n+'h</title></circle>').join('');
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:auto" preserveAspectRatio="xMidYMid meet">'+
+    '<defs><linearGradient id="gEvo" x1="0" y1="0" x2="0" y2="1">'+
+    '<stop offset="0%" stop-color="var(--green)" stop-opacity=".26"/>'+
+    '<stop offset="100%" stop-color="var(--green)" stop-opacity="0"/></linearGradient></defs>'+
+    grid+
+    '<path d="'+line+' L'+pts[pts.length-1].x.toFixed(1)+' '+(pt+ih)+' L'+pts[0].x.toFixed(1)+' '+(pt+ih)+' Z" fill="url(#gEvo)"/>'+
+    '<path d="'+mline+'" fill="none" stroke="var(--cyan)" stroke-width="1.4" stroke-dasharray="4 3" opacity=".85"/>'+
+    '<path d="'+line+'" fill="none" stroke="var(--green)" stroke-width="2"/>'+dots+xlab+'</svg>';
+}
+function barsSVG(hours){
+  const withN=hours.filter(h=>h.n>0);
+  if(!withN.length)return noData('Dados insuficientes','Catalogue horas para ver o desempenho por horário.');
+  const w=760,h=190,pl=30,pr=8,pt=10,pb=26,iw=w-pl-pr,ih=h-pt-pb;
+  const bw=iw/24*.66,gap=iw/24;
+  const grid=[0,50,100].map(v=>{
+    const y=pt+ih-(v/100)*ih;
+    return '<line x1="'+pl+'" y1="'+y+'" x2="'+(w-pr)+'" y2="'+y+'" stroke="var(--line)"/>'+
+      '<text x="'+(pl-6)+'" y="'+(y+3.5)+'" text-anchor="end" fill="var(--faint)" font-size="9" font-family="JetBrains Mono">'+v+'</text>';
+  }).join('');
+  const bars=hours.map(hh=>{
+    const x=pl+hh.hour*gap+(gap-bw)/2;
+    if(!hh.n)return '';
+    const bh=Math.max(2,(hh.rate/100)*ih),y=pt+ih-bh;
+    const cor=hh.n<5?'var(--line2)':hh.rate>=70?'var(--green)':hh.rate>=50?'var(--cyan)':'var(--red)';
+    return '<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+bh.toFixed(1)+
+      '" rx="2" fill="'+cor+'" opacity="'+(hh.n<5?'.5':'.9')+'"><title>'+p2(hh.hour)+'h — '+f1(hh.rate)+' em '+hh.n+' dias</title></rect>';
+  }).join('');
+  const labs=hours.map(hh=>hh.hour%3===0?
+    '<text x="'+(pl+hh.hour*gap+gap/2).toFixed(1)+'" y="'+(h-8)+'" text-anchor="middle" fill="var(--faint)" font-size="8.5" font-family="JetBrains Mono">'+p2(hh.hour)+'</text>':'').join('');
+  return '<svg viewBox="0 0 '+w+' '+h+'" style="width:100%;height:auto">'+grid+bars+labs+'</svg>';
+}
+
+/* ═══════════ navegação ═══════════ */
+let VIEW='dash';
+function go(v){
+  VIEW=v;
+  $$('.nav[data-v]').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $$('.tb').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
+  $$('.page').forEach(p=>p.classList.remove('on'));
+  $('#p-'+v).classList.add('on');
+  window.scrollTo({top:0,behavior:'instant'});
+  render();
+}
+$('#nav').onclick=e=>{const b=e.target.closest('.nav[data-v]');if(b)go(b.dataset.v);};
+$('#tabbar').onclick=e=>{const b=e.target.closest('.tb');if(b)go(b.dataset.v);};
+function subnav(wrap,after){
+  $(wrap).onclick=e=>{const b=e.target.closest('.sub');if(!b)return;
+    Array.from($(wrap).children).forEach(t=>t.classList.toggle('on',t===b));
+    const parent=$(wrap).parentElement;
+    Array.from(parent.querySelectorAll('.pane')).forEach(p=>p.classList.toggle('on',p.id===b.dataset.p));
+    if(after)after();};
+}
+subnav('#quantTabs');subnav('#sigTabs');subnav('#lossTabs');
+
+/* ═══════════ DASHBOARD ═══════════ */
+function renderDash(){
+  const list=done(),s=tally(list),dias=byDay(list);
+  const hrs=hoursWithQuality(list);
+  const rank=hrs.slice().sort((a,b)=>b.q-a.q||b.n-a.n);
+  const best=rank[0],worst=rank.length>1?rank[rank.length-1]:null;
+  const spark=dias.slice(-14).map(d=>d.t.rate);
+  const half=Math.floor(dias.length/2);
+  let delta=null;
+  if(dias.length>=4){
+    const a=dias.slice(0,half),b=dias.slice(half);
+    const ta=tally([].concat.apply([],a.map(d=>d.list))),tb=tally([].concat.apply([],b.map(d=>d.list)));
+    delta=tb.rate-ta.rate;
+  }
+  const dTag=delta===null?'':' <span class="delta" style="color:'+(delta>=0?'var(--green)':'var(--red)')+'">'+
+    (delta>=0?'▲ ':'▼ ')+Math.abs(delta).toFixed(1)+'</span>';
+
+  $('#dashKpis').innerHTML=
+    kpi('Assertividade',s.n?f1(s.rate):'—',(s.n?s.win+' ganhos em '+s.n+' horas':'sem dados')+dTag,
+        {lead:true,spark:sparkSVG(spark,'var(--green)')})+
+    kpi('Total de operações',String(s.n),dias.length+' dias catalogados')+
+    kpi('Win (direto + gale)',String(s.win),s.n?f1(s.rate)+' do total':'—',{vc:'c-direct',ring:s.rate,ringColor:'var(--green)'})+
+    kpi('Loss',String(s.loss),s.n?f1(pct(s.loss,s.n))+' do total':'—',{vc:'c-loss',ring:pct(s.loss,s.n),ringColor:'var(--red)'})+
+    kpi('Melhor janela',best?p2(best.hour)+':00':'—',best?'Quality '+best.q+' · '+f1(best.rate):'sem dados',{vc:'c-acc'})+
+    kpi('Pior janela',worst?p2(worst.hour)+':00':'—',worst?'Quality '+worst.q+' · '+f1(worst.rate):'sem dados',{vc:'c-loss'});
+
+  $('#evoChart').innerHTML=lineSVG(dias);
+  $('#evoLeg').innerHTML=dias.length>1?'<span style="color:var(--green)">━</span> win rate do dia &nbsp; <span style="color:var(--cyan)">┄</span> média móvel 7d':'';
+  $('#donutBox').innerHTML=donutSVG(s,String(s.n),'OPERAÇÕES');
+
+  $('#tblJanelas').innerHTML=tbl(
+    '<th class="rank">#</th><th>Horário</th><th class="num">Win rate</th><th class="num">Direto</th><th class="num">Amostra</th><th class="num">Quality</th><th>Classificação</th>',
+    rank.slice(0,7).map((h,i)=>'<tr class="op'+(i===0?' hi':'')+'" data-hour="'+h.hour+'">'+
+      '<td class="rank">'+(i+1)+'</td><td class="mono">'+p2(h.hour)+':00</td>'+
+      '<td class="num"><b>'+f1(h.rate)+'</b><span class="mini"><i style="width:'+h.rate+'%"></i></span></td>'+
+      '<td class="num c-direct">'+f1(pct(h.direct,h.n))+'</td>'+
+      '<td class="num">'+h.n+'</td><td class="num">'+qBadge(h.q)+'</td>'+
+      '<td><span class="tag '+(h.q>=80?'t-green':h.q>=65?'t-cyan':h.q>=50?'t-amber':'t-red')+'">'+qLabel(h.q)+'</span></td></tr>').join(''),
+    'Dados insuficientes','Catalogue algumas horas na aba Registro.');
+
+  const rec=list.slice(-9).reverse();
+  $('#dashRecent').innerHTML=rec.length?'<div class="hlist">'+rec.map(r=>
+    '<div class="hitem"><span class="d">'+fmtDate(r.date)+'</span><span class="mono c-dim">'+p2(r.hour)+':00</span>'+
+    '<span style="margin-left:auto"><span class="badge b-'+r.result+'">'+RES[r.result]+'</span></span></div>').join('')+'</div>':
+    noData('Nada catalogado ainda','Comece pela aba Registro.');
+  $('#dashRange').textContent=(FILTER.from||FILTER.to)?
+    ((FILTER.from?fmtDate(FILTER.from):'início')+' → '+(FILTER.to?fmtDate(FILTER.to):'hoje')):'todo o período';
+}
+$('#tblJanelas').onclick=e=>{const tr=e.target.closest('.op');if(tr)openDrawer(+tr.dataset.hour);};
+/* ═══════════ REGISTRO ═══════════ */
+function renderRegistro(){
+  const date=A().cursor.date;
+  const hs=horasDoDia(date),fechado=!hs.length;
+  if(!fechado&&hs.indexOf(A().cursor.hour)<0){A().cursor.hour=hs[0];save(true);}
+  const hour=A().cursor.hour;
+  $('#regHour').innerHTML=(fechado?[hour]:hs).map(h=>'<option value="'+h+'">'+p2(h)+':00</option>').join('');
+  $('#regHour').disabled=fechado;
+  $('#regDate').value=date;$('#regHour').value=String(hour);
+  /* dia sem cronograma: o par não opera neste dia da semana */
+  $('#regClosed').style.display=fechado?'':'none';
+  $('#regClosed').innerHTML=fechado?'<b>Mercado fechado</b><span>'+WD[wdOf(date)]+
+    ' não faz parte do cronograma de '+A().name+'. Use o campo de data para escolher outro dia, '+
+    'ou ajuste o cronograma no botão Pares.</span>'+
+    '<div class="row mt" style="justify-content:center"><button class="btn pri" id="irProxAberto">'+
+    'Ir para o próximo dia aberto</button></div>':'';
+  $('#pnCycle').style.display=fechado?'none':'';
+  $('#pnReg').style.display=fechado?'none':'';
+  if(fechado){
+    $('#nextBox').innerHTML='<p class="hint">Sem projeção: '+WD[wdOf(date)]+' está fora do cronograma deste par.</p>';
+    $('#probTag').textContent='fechado';$('#probTag').className='tag t-dim';
+    renderHourPanel(hour);
+    return;
+  }
+  const c=cell(date,hour,false)||[null,null,null,null];
+  const nx=nextEmpty(c),ref=c[0];
+
+  let html='';
+  for(let i=0;i<4;i++){
+    const filled=!!c[i];
+    let cls='step'+(filled?(c[i]==='G'?' g':' r'):'')+(i===nx?' now':'')+(filled?' done':'');
+    if(i>=2&&ref&&c[1]&&c[1]===ref)cls+=' skip';
+    if(i===3&&ref&&c[2]&&c[2]===ref&&c[1]&&c[1]!==ref)cls+=' skip';
+    const st=filled?(c[i]==='G'?'<i></i>Verde':'<i></i>Vermelho'):(i===nx?'<i></i>Aguardando':'Pendente');
+    html+='<button class="'+cls+'" data-i="'+i+'"'+(filled?'':' disabled')+'>'+
+      '<span class="idx">'+p2(i+1)+'</span>'+
+      '<div class="role">'+ROLES[i]+'</div>'+
+      '<div class="time">'+p2(hour)+':'+p2(i*15)+'</div>'+
+      '<div class="st">'+st+'</div></button>';
+    if(i<3)html+='<div class="arrow"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6"/></svg></div>';
+  }
+  $('#cycle').innerHTML=html;
+
+  const res=resultOf(c);
+  $('#regBtns').style.display=nx===-1?'none':'grid';
+  $('#regDone').style.display=nx===-1?'block':'none';
+  $('#regState').textContent=nx===-1?'ciclo fechado':'aguarde o fechamento da vela para registrar';
+  if(res){const r=$('#regResult');r.textContent=RES[res];r.className='c-'+res;}
+
+  renderNext(date,hour,c,nx);
+  renderHourPanel(hour);
+}
+function renderNext(date,hour,c,nx){
+  const box=$('#nextBox');
+  if(nx===-1){
+    box.innerHTML='<p class="hint">Ciclo completo. Avance para a próxima hora para voltar a ver a projeção.</p>';
+    $('#probTag').textContent='—';$('#probTag').className='tag t-dim';return;
+  }
+  const prefix=c.slice(0,nx),p=pattern(prefix,date+'|'+hour);
+  const gp=pct(p.g,p.n),rp=pct(p.r,p.n);
+  const conf=confidence(p.n,p.g);
+  $('#probTag').textContent=p.n?('n='+p.n):'sem amostra';
+  $('#probTag').className='tag '+(p.n<10?'t-amber':'t-cyan');
+  const seq=prefix.length?prefix.map(x=>'<span class="dot" style="display:inline-block;background:'+(x==='G'?'var(--green)':'var(--red)')+'"></span>').join(' '):'<span class="hint">início do ciclo</span>';
+  box.innerHTML=
+    '<div class="nextc"><span class="hh">'+p2(hour)+':'+p2(nx*15)+'</span>'+
+      '<span class="hint">'+ROLES[nx]+'</span></div>'+
+    '<div class="mt" style="display:flex;align-items:center;gap:8px"><span class="hint">Sequência</span>'+seq+'</div>'+
+    '<div class="hint mt" style="letter-spacing:.14em;text-transform:uppercase;font-weight:700">Probabilidade histórica</div>'+
+    '<div class="probsplit">'+
+      '<div><div class="pv c-direct">'+(p.n?f1(gp):'—')+'</div><div class="pl">Verde</div></div>'+
+      '<div><div class="pv c-loss">'+(p.n?f1(rp):'—')+'</div><div class="pl">Vermelha</div></div>'+
+    '</div>'+
+    '<div class="metarow">'+
+      '<div><div class="mk">Amostra</div><div class="mv mono">'+p.n+' <span class="hint">ocorrências</span></div></div>'+
+      '<div><div class="mk">Confiança</div><div class="mv">'+(p.n?confTag(conf):'<span class="tag t-dim">SEM DADOS</span>')+'</div></div>'+
+    '</div>'+
+    '<div class="conf"><i style="width:'+(p.n?(conf.lvl+1)*20:0)+'%"></i></div>'+
+    '<p class="hint mt">Frequência da mesma sequência parcial no seu histórico. Probabilidade histórica não é garantia de resultado futuro.</p>';
+}
+function renderHourPanel(hour){
+  const s=byHour(done())[hour],box=$('#hourBox');
+  $('#hourLab').textContent=p2(hour)+':00';
+  if(!s.n){box.innerHTML=noData('Dados insuficientes','Nenhuma hora '+p2(hour)+'h fechada no período filtrado.');return;}
+  const q=qualityOf(s.list),conf=confidence(s.n,s.win);
+  const ult=s.list.slice(-5).reverse();
+  box.innerHTML='<div style="padding:13px 14px;border-bottom:1px solid var(--line)">'+
+    '<div class="spread"><span class="hint">Assertividade às '+p2(hour)+'h</span>'+
+    '<span style="font-size:19px;font-weight:700" class="c-acc">'+f1(s.rate)+'</span></div>'+
+    '<div class="mt">'+segBar(s)+'</div>'+
+    '<div class="spread mt"><span>'+qBadge(q.score)+' <span class="hint">Quality</span></span>'+confTag(conf)+'</div></div>'+
+    '<div class="hlist">'+ult.map((r,i)=>
+      '<div class="hitem"><span class="n">'+(i+1)+'</span><span class="d">'+fmtDate(r.date)+'</span>'+
+      '<span class="v" style="color:'+CORES[r.result]+'">'+RESS[r.result]+'</span></div>').join('')+'</div>'+
+    '<div style="padding:9px 14px"><span class="hint">'+s.n+' dia(s) com esse horário fechado.</span></div>';
+}
+function editCandle(date,hour,i){
+  cancelAuto();
+  const c=cell(date,hour,false);if(!c||!c[i])return;
+  const cur=c[i]==='G'?'Verde':'Vermelho',novo=c[i]==='G'?'Vermelho':'Verde';
+  confirmBox('Corrigir '+ROLES[i]+' — '+p2(hour)+':'+p2(i*15),
+    'Dia '+fmtDate(date)+'. A vela está registrada como <b>'+cur+'</b>. Trocar para <b>'+novo+'</b>?<br><br>'+
+    'O resultado da hora, as estatísticas, as probabilidades e os sinais que dependem desse dado serão recalculados.',
+    ()=>{c[i]=c[i]==='G'?'R':'G';save();render();toast('Vela corrigida para '+novo+'.');});
+}
+let autoT=null;
+function cancelAuto(){if(autoT){clearTimeout(autoT);autoT=null;}}
+function mark(color){
+  const c=cell(A().cursor.date,A().cursor.hour,true),i=nextEmpty(c);
+  if(i===-1)return;
+  c[i]=color;save();
+  if(nextEmpty(c)===-1){
+    toast('Hora fechada: '+RES[resultOf(c)]+'. Avançando…');
+    cancelAuto();autoT=setTimeout(()=>{autoT=null;stepHour(1);},1800);
+  }
+  render();
+}
+document.addEventListener('click',e=>{
+  if(e.target&&e.target.id==='irProxAberto'){
+    const d=proximoDiaAberto(A().cursor.date,1);
+    A().cursor.date=d;A().cursor.hour=horaValida(A().cursor.hour,d);
+    save();render();toast('Indo para '+fmtDate(d)+'.');
+  }
+});
+$('#cycle').onclick=e=>{const b=e.target.closest('.step');if(b&&!b.disabled)editCandle(A().cursor.date,A().cursor.hour,+b.dataset.i);};
+$('#regBtns').onclick=e=>{const b=e.target.closest('.regbtn');if(b)mark(b.dataset.c);};
+$('#goNext').onclick=()=>stepHour(1);
+$('#hPrev').onclick=()=>stepHour(-1);
+$('#hNext').onclick=()=>stepHour(1);
+function stepHour(k){cancelAuto();const s=stepTrad(A().cursor.date,A().cursor.hour,k);
+  A().cursor.date=s[0];A().cursor.hour=s[1];save();render();}
+document.addEventListener('keydown',e=>{
+  if(VIEW!=='registro')return;
+  const t=e.target.tagName;
+  if(t==='INPUT'||t==='SELECT'||t==='TEXTAREA')return;
+  if($('#ovl').classList.contains('on')||$('#drawer').classList.contains('on'))return;
+  const k=e.key.toLowerCase();
+  if(k==='v'||k==='g'){e.preventDefault();mark('G');}
+  else if(k==='r'||k==='n'){e.preventDefault();mark('R');}
+  else if(k==='arrowright'){e.preventDefault();stepHour(1);}
+  else if(k==='arrowleft'){e.preventDefault();stepHour(-1);}
+});
+$('#regDate').onchange=e=>{cancelAuto();if(e.target.value){A().cursor.date=e.target.value;save();render();}};
+$('#regHour').onchange=e=>{cancelAuto();A().cursor.hour=+e.target.value;save();render();};
+
+/* ═══════════ HISTORICAL DATA ═══════════ */
+function renderHist(){
+  let list=records();
+  const rg=+$('#histRange').value;
+  if(rg)list=list.filter(r=>r.date>=addDays(todayISO(),-(rg-1)));
+  const fr=$('#histRes').value;
+  if(fr==='open')list=list.filter(r=>!r.result);
+  else if(fr)list=list.filter(r=>r.result===fr);
+  const q=$('#histSearch').value.trim();
+  if(q){const n=parseInt(q,10);if(!isNaN(n))list=list.filter(r=>r.hour===n);}
+  list=list.slice();
+  if($('#histOrder').value==='desc')list.reverse();
+  const t=tally(list);
+  $('#histCount').innerHTML=list.length+' registro(s)'+(t.n?' · '+f1(t.rate)+' de acerto':'');
+  const MAX=300,cut=list.slice(0,MAX);
+  $('#tblHist').innerHTML=tbl(
+    '<th>Data</th><th>Horário</th><th>Referência</th><th>Entrada</th><th>Gale 1</th><th>Gale 2</th><th>Resultado</th><th>Status</th><th>Ação</th>',
+    cut.map(r=>{
+      const cels=r.c.map((x,i)=>'<td><button class="pip'+(x==='G'?' g':x==='R'?' r':'')+(i===0?' ref':'')+
+        '" data-e="'+r.date+'|'+r.hour+'|'+i+'" title="'+ROLES[i]+' · '+p2(r.hour)+':'+p2(i*15)+'">'+(x?(x==='G'?'V':'X'):'—')+'</button></td>').join('');
+      return '<tr><td class="mono">'+fmtDate(r.date)+'</td><td class="mono">'+p2(r.hour)+':00</td>'+cels+
+        '<td>'+(r.result?'<span class="badge b-'+r.result+'">'+RES[r.result]+'</span>':'<span class="badge b-open">incompleta</span>')+'</td>'+
+        '<td>'+(r.result?(r.result==='loss'?'<span class="tag t-red">LOSS</span>':'<span class="tag t-green">WIN</span>'):'<span class="tag t-dim">ABERTA</span>')+'</td>'+
+        '<td><button class="btn sm" data-view="'+r.date+'|'+r.hour+'">Ver velas</button></td></tr>';
+    }).join(''),
+    'Histórico vazio','Cada hora catalogada aparece aqui, com as quatro velas.')+
+    (list.length>MAX?'<div style="padding:10px 12px"><span class="hint">Mostrando os '+MAX+' primeiros de '+list.length+' registros. Use os filtros para estreitar.</span></div>':'');
+}
+$('#tblHist').onclick=e=>{
+  const pip=e.target.closest('.pip');
+  if(pip){const a=pip.dataset.e.split('|');if(A().days[a[0]]&&A().days[a[0]][a[1]]&&A().days[a[0]][a[1]][+a[2]])editCandle(a[0],+a[1],+a[2]);return;}
+  const v=e.target.closest('[data-view]');
+  if(v){const a=v.dataset.view.split('|');showCandles(a[0],+a[1]);}
+};
+['#histRange','#histRes','#histOrder'].forEach(s=>$(s).onchange=renderHist);
+$('#histSearch').oninput=renderHist;
+function showCandles(date,hour){
+  const c=cell(date,hour,false)||[null,null,null,null],res=resultOf(c);
+  const alt=[54,74,62,86];
+  confirmBox(fmtDate(date)+' · '+p2(hour)+':00',
+    '<div class="candles">'+c.map((x,i)=>
+      '<div class="cnd"><div class="bar'+(x==='G'?' g':x==='R'?' r':'')+'" style="height:'+alt[i]+'px"></div>'+
+      '<div class="lb">'+['Ref','Entrada','Gale 1','Gale 2'][i]+'</div></div>').join('')+'</div>'+
+    '<div class="spread mt"><span class="hint">Resultado da hora</span>'+
+    (res?'<span class="badge b-'+res+'">'+RES[res]+'</span>':'<span class="badge b-open">incompleta</span>')+'</div>'+
+    '<p class="hint mt">Para corrigir uma vela, clique nela direto na tabela.</p>',null);
+  $('#mOk').style.display='none';$('#mCancel').textContent='Fechar';
+}
+$('#ovl').addEventListener('click',()=>{$('#mOk').style.display='';$('#mCancel').textContent='Cancelar';});
+
+/* ═══════════ QUANT LAB ═══════════ */
+function renderQuant(){
+  const list=done(),s=tally(list),hrs=hoursWithQuality(list);
+  const rank=hrs.slice().sort((a,b)=>b.q-a.q||b.n-a.n);
+  const best=rank[0],worst=rank.length>1?rank[rank.length-1]:null;
+  const dias=byDay(list);
+  const lossMedia=s.n?pct(s.loss,s.n):0;
+
+  $('#quantKpis').innerHTML=
+    kpi('Win rate',s.n?f1(s.rate):'—',s.win+' de '+s.n+' horas',{lead:true})+
+    kpi('Amostra total',String(s.n),dias.length+' dias catalogados')+
+    kpi('Melhor horário',best?p2(best.hour)+':00':'—',best?f1(best.rate)+' · n='+best.n:'sem dados',{vc:'c-direct'})+
+    kpi('Pior horário',worst?p2(worst.hour)+':00':'—',worst?f1(worst.rate)+' · n='+worst.n:'sem dados',{vc:'c-loss'})+
+    kpi('Média de Loss',s.n?f1(lossMedia):'—',s.loss+' horas negativas',{vc:'c-loss'});
+
+  $('#quantDonut').innerHTML=donutSVG(s,String(s.n),'OPERAÇÕES');
+  $('#quantBars').innerHTML=barsSVG(hrs.length?byHour(list):[]);
+
+  /* qualidade dos sinais: quanto cada tipo de fechamento pesa */
+  $('#quantQual').innerHTML=s.n?RESK.map(k=>{
+    const v=pct(s[k],s.n);
+    return '<div class="spread" style="padding:7px 0;border-bottom:1px solid var(--line)">'+
+      '<span style="display:flex;align-items:center;gap:8px;font-size:12px;min-width:96px">'+
+      '<span class="dot" style="background:'+CORES[k]+'"></span>'+RESS[k]+'</span>'+
+      '<span class="seg" style="flex:1;margin:0 12px"><i style="width:'+v+'%;background:'+CORES[k]+'"></i></span>'+
+      '<span class="mono" style="font-weight:600;min-width:54px;text-align:right;color:'+CORES[k]+'">'+f1(v)+'</span>'+
+      '<span class="mono hint" style="min-width:34px;text-align:right">'+s[k]+'</span></div>';
+  }).join('')+'<p class="hint mt">Quanto maior a fatia de <b>Direto</b>, menor a exposição: o ganho não dependeu de dobrar a entrada.</p>'
+    :noData('Dados insuficientes','Catalogue horas para ver a composição dos resultados.');
+
+  /* tabelas */
+  const bh=hrs;
+  const bestQ=Math.max.apply(null,bh.map(h=>h.q).concat([-1]));
+  $('#tblHora').innerHTML=tbl(
+    '<th>Horário</th><th class="num">Direto</th><th class="num">Gale 1</th><th class="num">Gale 2</th><th class="num">Loss</th><th class="num">Win total</th><th class="num">Dias</th><th class="num">Quality</th><th>Confiança</th>',
+    bh.map(h=>'<tr class="op'+(h.q===bestQ&&h.n>=5?' hi':'')+'" data-hour="'+h.hour+'"><td class="mono">'+p2(h.hour)+':00</td>'+
+      RESK.map(k=>'<td class="num c-'+k+'">'+pctCell(pct(h[k],h.n),h.n)+'</td>').join('')+
+      '<td class="num"><b>'+f1(h.rate)+'</b><span class="mini"><i style="width:'+h.rate+'%"></i></span></td>'+
+      '<td class="num">'+h.n+'</td><td class="num">'+qBadge(h.q)+'</td><td>'+confTag(h.conf)+'</td></tr>').join(''));
+
+  const bt=byTurno(list),btMax=Math.max.apply(null,bt.map(t=>t.n?t.rate:-1));
+  $('#tblTurno').innerHTML=tbl(
+    '<th>Turno</th><th>Faixa</th><th class="num">Direto</th><th class="num">Gale 1</th><th class="num">Gale 2</th><th class="num">Loss</th><th class="num">Win total</th><th class="num">Amostra</th><th class="num">Quality</th>',
+    bt.map(t=>{const q=t.n?qualityOf(t.list).score:0;
+      return '<tr class="'+(t.n&&t.rate===btMax?'hi':'')+(t.n?'':' dim')+'"><td><b>'+t.name+'</b></td><td class="mono hint">'+t.range+'</td>'+
+      RESK.map(k=>'<td class="num c-'+k+'">'+pctCell(pct(t[k],t.n),t.n)+'</td>').join('')+
+      '<td class="num"><b>'+(t.n?f1(t.rate):'—')+'</b></td><td class="num">'+t.n+'</td>'+
+      '<td class="num">'+(t.n?qBadge(q):'—')+'</td></tr>';}).join(''));
+
+  const bw=byWeekdayTurno(list);
+  $('#tblSemana').innerHTML=tbl(
+    '<th>Dia</th><th class="num">Madrugada</th><th class="num">Manhã</th><th class="num">Tarde</th><th class="num">Noite</th><th class="num">Geral</th><th class="num">Amostra</th>',
+    bw.map(row=>{
+      const best=row.turnos.filter(t=>t.n>0).sort((a,b)=>b.rate-a.rate)[0];
+      return '<tr class="'+(row.total.n?'':'dim')+'"><td><b>'+row.name+'</b></td>'+
+        row.turnos.map(t=>'<td class="num">'+(t.n?(best&&t.name===best.name?'<b class="c-acc">'+f1(t.rate)+'</b>':f1(t.rate))+
+          ' <span class="hint mono">n='+t.n+'</span>':'—')+'</td>').join('')+
+        '<td class="num"><b>'+(row.total.n?f1(row.total.rate):'—')+'</b></td><td class="num">'+row.total.n+'</td></tr>';
+    }));
+}
+$('#tblHora').onclick=e=>{const tr=e.target.closest('.op');if(tr)openDrawer(+tr.dataset.hour);};
+/* ═══════════ SIGNAL INTELLIGENCE ═══════════ */
+function sigWinDays(){const e=$('#sigWin');return e?+e.value||0:0;}
+function sigScope(){
+  const w=sigWinDays();if(!w)return done();
+  const from=addDays(todayISO(),-(w-1));
+  return done().filter(r=>r.date>=from);
+}
+function renderSinais(){
+  const w=sigWinDays(),stN=$('#minN').closest('.stepper');
+  stN.dataset.max=w?Math.max(1,w):999;
+  const minN=stepFix($('#minN'));
+  const list=sigScope(),minR=+$('#minRate').value;
+  const dias=new Set(list.map(r=>r.date)).size;
+  $('#sigWinInfo').innerHTML=w
+    ? fmtDate(addDays(todayISO(),-(w-1)))+' → '+fmtDate(todayISO())+' · '+dias+' dia(s) na janela'
+    : 'todo o histórico · '+dias+' dia(s)';
+
+  const todas=hoursWithQuality(list);
+  const passam=todas.filter(h=>h.n>=minN&&h.rate>=minR).sort((a,b)=>b.q-a.q||b.n-a.n);
+  const bestQ=passam[0];
+  const menorLoss=passam.slice().sort((a,b)=>pct(a.loss,a.n)-pct(b.loss,b.n))[0];
+  const maiorDir=passam.slice().sort((a,b)=>pct(b.direct,b.n)-pct(a.direct,a.n))[0];
+
+  $('#sigSummary').innerHTML=
+    kpi('Horários analisados',String(todas.length),'com pelo menos 1 ocorrência')+
+    kpi('Passaram no filtro',String(passam.length),'win ≥ '+minR+'% e amostra ≥ '+minN,{lead:true,vc:'c-acc'})+
+    kpi('Melhor Quality',bestQ?p2(bestQ.hour)+':00':'—',bestQ?'score '+bestQ.q+' de 100':'nenhum passou',{vc:'c-direct'})+
+    kpi('Menor Loss',menorLoss?p2(menorLoss.hour)+':00':'—',menorLoss?f1(pct(menorLoss.loss,menorLoss.n))+' de Loss':'—',{vc:'c-loss'})+
+    kpi('Maior ganho direto',maiorDir?p2(maiorDir.hour)+':00':'—',maiorDir?f1(pct(maiorDir.direct,maiorDir.n))+' direto':'—',{vc:'c-direct'});
+
+  const target=$('#sigDate').value;
+  const has=h=>A().signals.some(s=>s.date===target&&s.hour===h&&s.kind==='hora');
+  $('#tblOps').innerHTML=tbl(
+    '<th class="rank">#</th><th>Horário</th><th class="num">Win total</th><th class="num">Direto</th><th class="num">Gale 1</th><th class="num">Gale 2</th><th class="num">Loss</th><th class="num">Amostra</th><th class="num">Quality</th><th>Confiança</th><th>Ação</th>',
+    passam.map((h,i)=>'<tr class="op'+(i===0?' hi':'')+'" data-hour="'+h.hour+'">'+
+      '<td class="rank">'+(i+1)+'</td><td class="mono"><b>'+p2(h.hour)+':00</b></td>'+
+      '<td class="num"><b class="c-acc">'+f1(h.rate)+'</b></td>'+
+      '<td class="num c-direct">'+f1(pct(h.direct,h.n))+'</td>'+
+      '<td class="num c-gale1">'+f1(pct(h.gale1,h.n))+'</td>'+
+      '<td class="num c-gale2">'+f1(pct(h.gale2,h.n))+'</td>'+
+      '<td class="num c-loss">'+f1(pct(h.loss,h.n))+'</td>'+
+      '<td class="num">'+h.n+'</td><td class="num">'+qBadge(h.q)+'</td>'+
+      '<td>'+confTag(h.conf)+'</td>'+
+      '<td><button class="btn gold sm" data-sig="'+h.hour+'" '+(has(h.hour)?'disabled':'')+'>'+(has(h.hour)?'Emitido':'Emitir sinal')+'</button></td></tr>').join(''),
+    'Nenhum horário passa no filtro','Reduza o win mínimo, baixe a amostra ou catalogue mais dias.');
+
+  renderSigHist();
+}
+
+/* ═══════════ LOSS — tudo que envolve Loss ═══════════ */
+function renderLoss(){
+  const list=sigScope();
+  const t=tally(list),nLoss=t.loss;
+  const ps=planosAposLoss(list);
+  const best=ps.filter(p=>p.testados>0).sort((a,b)=>b.q-a.q||b.testados-a.testados)[0];
+  const rs=resumeAfterLoss(list).filter(x=>x.t.n>0).sort((a,b)=>b.score-a.score||b.t.n-a.t.n)[0];
+  const st=lossStreaks(list).filter(x=>x.t.n>0);
+  const dobra=st.length?st[0]:null;
+  const abertos=lossAbertos(ps).length;
+
+  $('#lossKpis').innerHTML=
+    kpi('Loss no período',String(nLoss),t.n?f1(pct(nLoss,t.n))+' das '+t.n+' horas':'sem dados',{lead:true,vc:'c-loss'})+
+    kpi('Melhor plano',best?best.curto:'—',best?f1(best.t.rate)+' em '+best.testados+' testes':'sem amostra',{vc:'txt c-direct'})+
+    kpi('Quality do plano',best?String(best.q):'—',best?qLabel(best.q):'—',{ring:best?best.q:0,ringColor:best?qColor(best.q):'var(--cyan)'})+
+    kpi('Melhor espera',rs?'+'+rs.offset+'h':'—',rs?f1(rs.t.rate)+' · n='+rs.t.n:'sem amostra',{vc:'c-acc'})+
+    kpi('Loss puxa Loss?',dobra?f1(pct(dobra.t.loss,dobra.t.n)):'—',
+        dobra?'na hora seguinte · n='+dobra.t.n:'sem sequências',{vc:'c-loss'})+
+    kpi('Esperando operação',String(abertos),abertos?'prontos para virar sinal':'nada em aberto');
+
+  renderPlanos(list);
+  renderRet(list);
+  renderSeq(list);
+  renderLossSig(list,ps);
+  const al=afterLoss(list).filter(h=>h.n>0);
+  $('#tblLoss').innerHTML=tbl(
+    '<th>Loss às</th><th>Hora seguinte</th><th class="num">Loss seguido</th><th class="num">Direto</th><th class="num">Gale 1</th><th class="num">Gale 2</th><th class="num">Win total</th><th class="num">Amostra</th>',
+    al.map(h=>'<tr><td class="mono">'+p2(h.hour)+':00</td><td class="mono">'+p2(h.hour+1)+':00</td>'+
+      '<td class="num c-loss"><b>'+pctCell(pct(h.loss,h.n),h.n)+'</b></td>'+
+      '<td class="num c-direct">'+pctCell(pct(h.direct,h.n),h.n)+'</td>'+
+      '<td class="num c-gale1">'+pctCell(pct(h.gale1,h.n),h.n)+'</td>'+
+      '<td class="num c-gale2">'+pctCell(pct(h.gale2,h.n),h.n)+'</td>'+
+      '<td class="num"><b>'+f1(h.rate)+'</b></td><td class="num">'+h.n+'</td></tr>').join(''),
+    'Nenhum Loss com a hora seguinte catalogada');
+
+  const nd=nextDay(list).filter(r=>r.pts.some(p=>p.n>0));
+  $('#tblDia').innerHTML=tbl(
+    '<th>Loss às</th><th class="num">Dia+1 · 1h antes</th><th class="num">Dia+1 · mesmo horário</th><th class="num">Dia+1 · 1h depois</th>',
+    nd.map(r=>'<tr><td class="mono">'+p2(r.hour)+':00</td>'+
+      r.pts.map(p=>'<td class="num">'+(p.n?'<span class="c-loss">'+f1(p.p)+'</span> <span class="hint mono">n='+p.n+'</span>':'—')+'</td>').join('')+'</tr>').join(''),
+    'Sem pares dia/dia seguinte catalogados');
+
+}
+
+/* quais Loss ainda têm o horário de operação por vir */
+function lossAbertos(ps){
+  const hoje=todayISO(),minR=+$('#minRate').value,out=[];
+  ps.forEach(p=>{
+    if(!p.testados||p.t.rate<minR)return;
+    p.ev.forEach(e=>{if(!e.res&&e.ad>=hoje)out.push({p:p,e:e});});
+  });
+  out.sort((a,b)=>a.e.ad===b.e.ad?a.e.ah-b.e.ah:(a.e.ad<b.e.ad?-1:1));
+  return out;
+}
+
+/* aferição só dos sinais nascidos de um Loss */
+function renderLossSig(list,ps){
+  const kinds=['pos-loss','retomada'];
+  const evald=D.assets[D.active].signals.filter(s=>kinds.indexOf(s.kind)>=0).map(s=>{
+    const c=cell(s.date,s.hour,false),r=c?resultOf(c):null;
+    return Object.assign({},s,{real:r,status:r?(r==='loss'?'erro':'acerto'):'pendente'});
+  }).sort((a,b)=>a.date===b.date?a.hour-b.hour:(a.date<b.date?1:-1));
+  const fin=evald.filter(s=>s.status!=='pendente');
+  const cnt=k=>fin.filter(s=>s.real===k).length;
+  const ac=fin.filter(s=>s.status==='acerto').length;
+
+  $('#lossSigStats').innerHTML=
+    kpi('Assertividade pós-Loss',fin.length?f1(pct(ac,fin.length)):'—',ac+' de '+fin.length+' apurados',{lead:true})+
+    kpi('Sinais emitidos',String(evald.length),(evald.length-fin.length)+' aguardando')+
+    kpi('Direto',String(cnt('direct')),fin.length?f1(pct(cnt('direct'),fin.length)):'—',{vc:'c-direct'})+
+    kpi('Gale 1',String(cnt('gale1')),fin.length?f1(pct(cnt('gale1'),fin.length)):'—',{vc:'c-gale1'})+
+    kpi('Gale 2',String(cnt('gale2')),fin.length?f1(pct(cnt('gale2'),fin.length)):'—',{vc:'c-gale2'})+
+    kpi('Loss',String(cnt('loss')),fin.length?f1(pct(cnt('loss'),fin.length)):'—',{vc:'c-loss'});
+
+  /* assertividade real por plano, lado a lado com a histórica */
+  const linhas=PLANOS.concat([{k:'retomada',lab:'Retomada (+Nh no mesmo dia)',curto:'Retomada'}]).map(pl=>{
+    const meus=fin.filter(s=>(s.plan||'')===pl.k);
+    const hist=ps.filter(x=>x.k===pl.k)[0];
+    const acer=meus.filter(s=>s.status==='acerto').length;
+    if(!meus.length&&!hist)return '';
+    return '<tr'+(meus.length?'':' class="dim"')+'><td>'+(pl.curto||pl.lab)+'</td>'+
+      '<td class="num">'+(hist&&hist.testados?f1(hist.t.rate)+' <span class="hint mono">n='+hist.testados+'</span>':'—')+'</td>'+
+      '<td class="num">'+meus.length+'</td>'+
+      '<td class="num">'+(meus.length?'<b class="c-acc">'+f1(pct(acer,meus.length))+'</b>':'—')+'</td>'+
+      '<td class="num c-direct">'+(meus.length?f1(pct(meus.filter(s=>s.real==='direct').length,meus.length)):'—')+'</td>'+
+      '<td class="num c-loss">'+(meus.length?f1(pct(meus.filter(s=>s.real==='loss').length,meus.length)):'—')+'</td></tr>';
+  }).join('');
+  $('#tblPlanoAfer').innerHTML=tbl(
+    '<th>Plano</th><th class="num">Win histórico</th><th class="num">Sinais apurados</th><th class="num">Assertividade real</th><th class="num">Direto</th><th class="num">Loss</th>',
+    linhas,'Nenhum sinal pós-Loss apurado','Emita sinais em <b>Loss em aberto</b> e a comparação entre o histórico e o resultado real aparece aqui.');
+
+  $('#tblLossSig').innerHTML=tbl(
+    '<th>Sinal</th><th>Horário</th><th>Plano</th><th class="num">Win na emissão</th><th class="num">Quality</th><th>Resultado real</th><th>Aferição</th><th></th>',
+    evald.map(s=>'<tr><td class="mono">'+fmtDate(s.date)+'</td><td class="mono">'+p2(s.hour)+':00</td>'+
+      '<td><span class="hint">'+(s.planLab||s.reason||'—')+'</span></td>'+
+      '<td class="num">'+f1(s.prob)+' <span class="hint mono">n='+s.sample+'</span></td>'+
+      '<td class="num">'+(s.q!=null?qBadge(s.q):'—')+'</td>'+
+      '<td>'+(s.real?'<span class="badge b-'+s.real+'">'+RES[s.real]+'</span>':'<span class="hint">não catalogado</span>')+'</td>'+
+      '<td>'+(s.status==='acerto'?'<b class="c-direct">Acerto</b>':s.status==='erro'?'<b class="c-loss">Erro</b>':'<span class="hint">pendente</span>')+'</td>'+
+      '<td><button class="btn sm" data-del="'+s.id+'">×</button></td></tr>').join(''),
+    'Nenhum sinal pós-Loss emitido','Vá em <b>Loss em aberto</b> e emita o primeiro.');
+}
+$('#tblLossSig').onclick=e=>{const b=e.target.closest('[data-del]');if(!b)return;
+  const a=A();a.signals=a.signals.filter(s=>s.id!==b.dataset.del);save();render();toast('Sinal removido.');};
+$('#lossSigClear').onclick=()=>confirmBox('Limpar sinais pós-Loss',
+  'Apaga só os sinais gerados a partir de um Loss. Os sinais por horário e o histórico de velas não são afetados.',
+  ()=>{const a=A();a.signals=a.signals.filter(s=>['pos-loss','retomada'].indexOf(s.kind)<0);save();render();toast('Sinais pós-Loss limpos.');});
+function renderSigHist(){
+  const evald=A().signals.map(s=>{
+    const c=cell(s.date,s.hour,false),r=c?resultOf(c):null;
+    return Object.assign({},s,{real:r,status:r?(r==='loss'?'erro':'acerto'):'pendente'});
+  }).sort((a,b)=>a.date===b.date?a.hour-b.hour:(a.date<b.date?1:-1));
+  const fin=evald.filter(s=>s.status!=='pendente');
+  const cnt=k=>fin.filter(s=>s.real===k).length;
+  const ac=fin.filter(s=>s.status==='acerto').length;
+  $('#sigStats').innerHTML=
+    kpi('Assertividade dos sinais',fin.length?f1(pct(ac,fin.length)):'—',ac+' de '+fin.length+' apurados',{lead:true})+
+    kpi('Sinais emitidos',String(A().signals.length),(evald.length-fin.length)+' aguardando resultado')+
+    kpi('Direto',String(cnt('direct')),fin.length?f1(pct(cnt('direct'),fin.length)):'—',{vc:'c-direct'})+
+    kpi('Gale 1',String(cnt('gale1')),fin.length?f1(pct(cnt('gale1'),fin.length)):'—',{vc:'c-gale1'})+
+    kpi('Gale 2',String(cnt('gale2')),fin.length?f1(pct(cnt('gale2'),fin.length)):'—',{vc:'c-gale2'})+
+    kpi('Loss',String(cnt('loss')),fin.length?f1(pct(cnt('loss'),fin.length)):'—',{vc:'c-loss'});
+  $('#tblSig').innerHTML=tbl(
+    '<th>Sinal</th><th>Horário</th><th>Ativo</th><th class="num">Win na emissão</th><th class="num">Quality</th><th>Confiança</th><th>Resultado real</th><th>Aferição</th><th></th>',
+    evald.map(s=>'<tr><td class="mono">'+fmtDate(s.date)+'</td><td class="mono">'+p2(s.hour)+':00</td><td>'+s.asset+'</td>'+
+      '<td class="num">'+f1(s.prob)+' <span class="hint mono">n='+s.sample+'</span></td>'+
+      '<td class="num">'+(s.q!=null?qBadge(s.q):'<span class="hint">—</span>')+'</td>'+
+      '<td>'+(s.conf?'<span class="tag '+(CONFT[CONF.indexOf(s.conf)]||'t-dim')+'">'+s.conf+'</span>':'<span class="hint">—</span>')+'</td>'+
+      '<td>'+(s.real?'<span class="badge b-'+s.real+'">'+RES[s.real]+'</span>':'<span class="hint">não catalogado</span>')+'</td>'+
+      '<td>'+(s.status==='acerto'?'<b class="c-direct">Acerto</b>':s.status==='erro'?'<b class="c-loss">Erro</b>':'<span class="hint">pendente</span>')+'</td>'+
+      '<td><button class="btn sm" data-del="'+s.id+'">×</button></td></tr>').join(''),
+    'Nenhum sinal emitido','Emita um sinal em <b>Gerar sinais</b>. Quando você catalogar aquela hora, a aferição aparece aqui sozinha.');
+}
+function renderSeq(list){
+  const st=lossStreaks(list).filter(x=>x.t.n>0);
+  $('#tblSeq').innerHTML=tbl(
+    '<th>Cenário</th><th class="num">Win total</th><th class="num">Direto</th><th class="num">Gale 1</th><th class="num">Gale 2</th><th class="num">Novo Loss</th><th class="num">Amostra</th><th class="num">Quality</th><th>Confiança</th>',
+    st.map(x=>{const t=x.t,cf=confidence(t.n,t.win);
+      return '<tr'+(t.n<5?' class="dim"':'')+'><td><b>Após '+x.after+' Loss seguido'+(x.after>1?'s':'')+'</b></td>'+
+      '<td class="num"><b class="c-acc">'+f1(t.rate)+'</b></td>'+
+      '<td class="num c-direct">'+pctCell(pct(t.direct,t.n),t.n)+'</td>'+
+      '<td class="num c-gale1">'+pctCell(pct(t.gale1,t.n),t.n)+'</td>'+
+      '<td class="num c-gale2">'+pctCell(pct(t.gale2,t.n),t.n)+'</td>'+
+      '<td class="num c-loss"><b>'+pctCell(pct(t.loss,t.n),t.n)+'</b></td>'+
+      '<td class="num">'+t.n+'</td><td class="num">'+qBadge(x.score)+'</td><td>'+confTag(cf)+'</td></tr>';}).join(''),
+    'Sem sequências de Loss contíguas','Aparece aqui quando houver Loss em horas seguidas no período.');
+}
+function renderRet(list){
+  const rs=resumeAfterLoss(list).filter(x=>x.t.n>0);
+  const best=rs.slice().sort((a,b)=>b.score-a.score||b.t.n-a.t.n)[0];
+  $('#tblRet').innerHTML=tbl(
+    '<th>Retomar em</th><th class="num">Win total</th><th class="num">Direto</th><th class="num">Gale 1</th><th class="num">Gale 2</th><th class="num">Loss</th><th class="num">Amostra</th><th class="num">Quality</th><th>Confiança</th>',
+    rs.map(x=>{const t=x.t,cf=confidence(t.n,t.win);
+      return '<tr class="'+(best&&x.offset===best.offset?'hi':'')+'"><td><b>+'+x.offset+'h</b> após o Loss</td>'+
+      '<td class="num"><b class="c-acc">'+f1(t.rate)+'</b></td>'+
+      '<td class="num c-direct">'+pctCell(pct(t.direct,t.n),t.n)+'</td>'+
+      '<td class="num c-gale1">'+pctCell(pct(t.gale1,t.n),t.n)+'</td>'+
+      '<td class="num c-gale2">'+pctCell(pct(t.gale2,t.n),t.n)+'</td>'+
+      '<td class="num c-loss">'+pctCell(pct(t.loss,t.n),t.n)+'</td>'+
+      '<td class="num">'+t.n+'</td><td class="num">'+qBadge(x.score)+'</td><td>'+confTag(cf)+'</td></tr>';}).join(''),
+    'Sem Loss com horas posteriores catalogadas');
+
+  if(!best){$('#retBox').innerHTML='';$('#retBox').style.display='none';return;}
+  $('#retBox').style.display='';
+  const t=best.t,cf=confidence(t.n,t.win),por=[];
+  const outros=rs.filter(x=>x.offset!==best.offset);
+  const maxRate=Math.max.apply(null,rs.map(x=>x.t.rate));
+  if(t.rate>=maxRate-0.01)por.push('Tem o maior win total entre as janelas testadas ('+f1(t.rate)+').');
+  else por.push('Não é a de maior win total, mas compensa com melhor composição: '+f1(pct(t.direct,t.n))+' de ganho direto.');
+  if(outros.length&&t.n>=Math.max.apply(null,outros.map(x=>x.t.n)))por.push('É também a janela com a maior amostra ('+t.n+' casos).');
+  if(pct(t.direct,t.n)>=40)por.push('Boa parte se resolve sem gale — '+f1(pct(t.direct,t.n))+' no ganho direto.');
+  if(pct(t.gale2,t.n)<=10)por.push('Dependência baixa de Gale 2 ('+f1(pct(t.gale2,t.n))+').');
+  if(best.drift!==null&&best.drift>=0)por.push('Comportamento estável ou melhorando ao longo do período.');
+  if(t.n<10)por.push('⚠ Amostra de apenas '+t.n+' casos — trate como indício.');
+  $('#retBox').innerHTML=
+    '<div class="panel-h"><h2>Melhor janela histórica de retomada</h2>'+confTag(cf)+'</div>'+
+    '<div class="panel-b">'+
+      '<div class="row" style="gap:16px;align-items:flex-end">'+
+        '<div><div class="hint" style="letter-spacing:.14em;text-transform:uppercase;font-weight:700">Retomar em</div>'+
+        '<div style="font-size:30px;font-weight:700;letter-spacing:-.03em">+'+best.offset+'h</div></div>'+
+        '<div><div class="hint">Quality</div><div style="margin-top:3px">'+qBadge(best.score)+'</div></div>'+
+        '<div><div class="hint">Win total</div><div class="mono" style="font-size:17px;font-weight:600">'+f1(t.rate)+'</div></div>'+
+        '<div><div class="hint">Amostra</div><div class="mono" style="font-size:17px;font-weight:600">'+t.n+'</div></div>'+
+        '<button class="btn gold" id="sigRet" style="margin-left:auto">Emitir como sinal</button>'+
+      '</div>'+
+      '<div class="mt">'+segBar(t,true)+segLegend(t)+'</div>'+
+      '<h2 style="margin-top:16px" class="hint" style="letter-spacing:.14em;text-transform:uppercase;font-weight:700">Por que esta janela?</h2>'+
+      '<div class="mt">'+por.map(p=>'<div class="factor pro"><span class="ic">✓</span><span class="tx">'+p+'</span></div>').join('')+'</div>'+
+      '<p class="hint mt">A escolha considera win, composição do ganho, Loss, amostra e consistência — não só o maior percentual.</p></div>';
+  const sr=$('#sigRet');
+  if(sr)sr.onclick=()=>{
+    const d=$('#sigDate').value||todayISO();
+    const tg=shift(d,A().cursor.hour,best.offset);
+    addSignal({date:tg[0],hour:tg[1],prob:t.rate,sample:t.n,q:best.score,conf:cf.label,kind:'retomada',
+      plan:'retomada',planLab:'Retomada +'+best.offset+'h',
+      reason:'Retomada +'+best.offset+'h após Loss'});
+  };
+}
+let planoSel=null;
+function renderPlanos(list){
+  const ps=planosAposLoss(list);
+  const comDados=ps.filter(p=>p.testados>0);
+  const best=comDados.slice().sort((a,b)=>b.q-a.q||b.testados-a.testados)[0];
+  const totalLoss=list.filter(r=>r.result==='loss').length;
+
+  $('#tblPlano').innerHTML=tbl(
+    '<th>Plano</th><th class="num">Win total</th><th class="num">Direto</th><th class="num">Gale 1</th><th class="num">Gale 2</th><th class="num">Loss</th><th class="num">Amostra</th><th class="num">Quality</th><th>Confiança</th><th class="num">Pior seq.</th><th class="num">Recente</th><th></th>',
+    ps.map(p=>{
+      const t=p.t,tem=p.testados>0,cf=confidence(t.n,t.win);
+      return '<tr class="'+(best&&best.k===p.k?'hi':'')+(tem?'':' dim')+'"><td>'+p.lab+'</td>'+
+        '<td class="num">'+(tem?'<b class="c-acc">'+f1(t.rate)+'</b>':'—')+'</td>'+
+        '<td class="num c-direct">'+pctCell(pct(t.direct,t.n),t.n)+'</td>'+
+        '<td class="num c-gale1">'+pctCell(pct(t.gale1,t.n),t.n)+'</td>'+
+        '<td class="num c-gale2">'+pctCell(pct(t.gale2,t.n),t.n)+'</td>'+
+        '<td class="num c-loss">'+pctCell(pct(t.loss,t.n),t.n)+'</td>'+
+        '<td class="num">'+p.testados+(p.abertos?' <span class="hint">+'+p.abertos+'</span>':'')+'</td>'+
+        '<td class="num">'+(tem?qBadge(p.q):'—')+'</td>'+
+        '<td>'+(tem?confTag(cf):'<span class="tag t-dim">SEM DADOS</span>')+'</td>'+
+        '<td class="num c-loss">'+(tem?p.maxRun:'—')+'</td>'+
+        '<td class="num">'+(p.rec.n?f1(p.rec.rate)+' <span class="hint mono">n='+p.rec.n+'</span>':'—')+'</td>'+
+        '<td><button class="btn sm" data-plano="'+p.k+'">Ver histórico</button></td></tr>';
+    }).join(''),
+    'Nenhum Loss no período','Sem Loss catalogado não há o que testar — amplie a janela de análise.');
+
+  $('#planoInfo').innerHTML=totalLoss?totalLoss+' Loss testados · "pior seq." = maior sequência de Loss seguidos do plano':'';
+
+  const sel=planoSel?ps.filter(p=>p.k===planoSel)[0]:null;
+  $('#planoDet').style.display=sel?'':'none';
+  if(sel){
+    const MAXH=60,corte=sel.ev.slice(0,MAXH);
+    $('#planoDetT').textContent=sel.lab+(sel.ev.length>MAXH?' — '+MAXH+' mais recentes de '+sel.ev.length:'');
+    $('#tblPlanoHist').innerHTML=tbl(
+      '<th>Loss aconteceu em</th><th>Operaria em</th><th>Resultado real</th><th>Teria dado</th>',
+      corte.map(e=>'<tr><td class="mono">'+fmtDate(e.ld)+' · '+p2(e.lh)+':00</td>'+
+        '<td class="mono">'+fmtDate(e.ad)+' · '+p2(e.ah)+':00</td>'+
+        '<td>'+(e.res?'<span class="badge b-'+e.res+'">'+RES[e.res]+'</span>':'<span class="hint">não catalogado</span>')+'</td>'+
+        '<td>'+(e.res?(e.res==='loss'?'<b class="c-loss">Loss</b>':'<b class="c-direct">Acerto</b>'):'<span class="hint">—</span>')+'</td></tr>').join(''),
+      'Nenhum Loss no período');
+  }
+
+  const minR=+$('#minRate').value,abertas=lossAbertos(ps);
+  const MAXA=15,cortadas=abertas.length-MAXA;
+  $('#planoOpenInfo').innerHTML=abertas.length
+    ? 'só planos com win ≥ '+minR+'%'+(cortadas>0?' · '+MAXA+' de '+abertas.length:'') : '';
+  const jaTem=(d,h)=>A().signals.some(s=>s.date===d&&s.hour===h);
+  $('#planoOpen').innerHTML=abertas.length?'<div class="hlist">'+abertas.slice(0,MAXA).map(o=>{
+    const t=o.p.t,cf=confidence(t.n,t.win),em=jaTem(o.e.ad,o.e.ah);
+    return '<div class="hitem" style="flex-wrap:wrap;gap:12px">'+
+      '<span class="mono" style="font-size:16px;font-weight:700;min-width:58px">'+p2(o.e.ah)+':00</span>'+
+      '<span class="mono c-acc" style="font-weight:600;min-width:54px">'+f1(t.rate)+'</span>'+
+      qBadge(o.p.q)+confTag(cf)+
+      '<span class="hint" style="flex:1;min-width:210px">Loss em <b>'+fmtDate(o.e.ld)+' '+p2(o.e.lh)+'h</b> → '+
+        o.p.lab.toLowerCase()+', ou seja <b>'+fmtDate(o.e.ad)+'</b>.</span>'+
+      '<button class="btn gold sm" data-pop="'+o.p.k+'|'+o.e.ad+'|'+o.e.ah+'|'+o.e.ld+'|'+o.e.lh+'" '+(em?'disabled':'')+'>'+
+      (em?'Emitido':'Emitir sinal')+'</button></div>';
+  }).join('')+'</div>':noData('Nada em aberto no momento',
+    'Aparecem aqui os Loss cujo horário de operação ainda não chegou, e só dos planos que batem o win mínimo.');
+}
+$('#tblPlano').onclick=e=>{const b=e.target.closest('[data-plano]');if(!b)return;
+  planoSel=(planoSel===b.dataset.plano?null:b.dataset.plano);render();
+  const d=$('#planoDet');if(d.style.display!=='none')d.scrollIntoView({behavior:'smooth',block:'nearest'});};
+$('#planoFechar').onclick=()=>{planoSel=null;render();};
+$('#planoOpen').onclick=e=>{const b=e.target.closest('[data-pop]');if(!b||b.disabled)return;
+  const a=b.dataset.pop.split('|'),p=planosAposLoss(sigScope()).filter(x=>x.k===a[0])[0];
+  if(!p)return;
+  addSignal({date:a[1],hour:+a[2],prob:p.t.rate,sample:p.testados,q:p.q,conf:confidence(p.t.n,p.t.win).label,
+    kind:'pos-loss',plan:p.k,planLab:p.curto,
+    reason:'Depois do Loss de '+fmtDate(a[3])+' '+p2(+a[4])+'h — '+p.lab.toLowerCase()});};
+
+function addSignal(o){
+  A().signals.push(Object.assign({id:'s'+Date.now()+Math.random().toString(36).slice(2,6),
+    asset:A().name,created:new Date().toISOString()},o));
+  save();render();toast('Sinal registrado — será aferido quando a hora for catalogada.');
+}
+$('#tblOps').onclick=e=>{
+  const b=e.target.closest('[data-sig]');
+  if(b){
+    if(b.disabled)return;
+    const h=+b.dataset.sig,list=sigScope(),s=byHour(list)[h],q=qualityOf(s.list),cf=confidence(s.n,s.win);
+    addSignal({date:$('#sigDate').value||todayISO(),hour:h,prob:s.rate,sample:s.n,q:q.score,conf:cf.label,
+      kind:'hora',reason:'Win histórico '+f1(s.rate)+' em '+s.n+' dias · Quality '+q.score});
+    return;
+  }
+  const tr=e.target.closest('.op');if(tr)openDrawer(+tr.dataset.hour);
+};
+$('#tblSig').onclick=e=>{const b=e.target.closest('[data-del]');if(!b)return;
+  A().signals=A().signals.filter(s=>s.id!==b.dataset.del);save();render();toast('Sinal removido.');};
+$('#sigClear').onclick=()=>confirmBox('Limpar histórico de sinais',
+  'Todos os sinais emitidos serão apagados. O histórico de velas não é afetado.',
+  ()=>{A().signals=[];save();render();toast('Histórico de sinais limpo.');});
+
+/* ═══════════ DRAWER — análise completa do horário ═══════════ */
+function closeDrawer(){$('#drawer').classList.remove('on');}
+$('#dwClose').onclick=closeDrawer;$('#drawerBd').onclick=closeDrawer;
+function openDrawer(hour){
+  const list=sigScope().length?sigScope():done();
+  const R=readSignal(hour,list);
+  if(!R){toast('Sem dados para '+p2(hour)+'h nessa janela.');return;}
+  const ctx=contextOf(hour,list),s=R.s;
+  $('#dwHour').textContent=p2(hour)+':00';
+  const forte=R.q>=80?'SINAL EXCELENTE':R.q>=65?'SINAL FORTE':R.q>=50?'SINAL MODERADO':'SINAL FRACO';
+  $('#dwTag').textContent=R.conf.lvl<=1?'AMOSTRA BAIXA':forte;
+  $('#dwTag').className='tag '+(R.conf.lvl<=1?'t-red':R.q>=65?'t-green':R.q>=50?'t-cyan':'t-amber');
+
+  const cel=(k,v,c)=>'<div class="dcell"><div class="k">'+k+'</div><div class="v'+(c?' '+c:'')+'">'+v+'</div></div>';
+  const linhaCtx=(lab,t)=>'<div class="spread" style="padding:7px 0;border-bottom:1px solid var(--line)">'+
+    '<span style="font-size:12px;color:var(--dim)">'+lab+'</span>'+
+    (t.n?'<span class="mono" style="font-weight:600">'+f1(t.rate)+' <span class="hint">win · n='+t.n+'</span></span>'
+        :'<span class="hint">sem amostra</span>')+'</div>';
+
+  $('#dwBody').innerHTML=
+    '<div class="spread"><div class="qbig"><b style="color:'+qColor(R.q)+'">'+R.q+'</b><span>/ 100 Quality</span></div>'+
+      confTag(R.conf)+'</div>'+
+    '<div class="mt">'+segBar(s,true)+segLegend(s)+'</div>'+
+    '<div class="dgrid mt2">'+
+      cel('Win total',f1(s.rate),'c-acc')+cel('Direto',f1(R.direct),'c-direct')+cel('Gale 1',f1(R.g1),'c-gale1')+
+      cel('Gale 2',f1(R.g2),'c-gale2')+cel('Loss',f1(R.loss),'c-loss')+cel('Amostra',String(s.n))+
+    '</div>'+
+    '<p class="hint mt">Intervalo de confiança de 95%: o win real deste horário está entre <b>'+f0(R.conf.lo)+'</b> e <b>'+f0(R.conf.hi)+'</b>.</p>'+
+
+    '<h3 class="mt2" style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);font-weight:700">Por que este sinal?</h3>'+
+    '<div class="mt">'+(R.pros.length?R.pros.map(p=>'<div class="factor pro"><span class="ic">✓</span><span class="tx">'+p+'</span></div>').join('')
+      :'<p class="hint">Os dados deste horário não sustentam nenhuma afirmação favorável.</p>')+'</div>'+
+
+    '<h3 class="mt2" style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);font-weight:700">Fatores de risco</h3>'+
+    '<div class="mt">'+(R.cons.length?R.cons.map(p=>'<div class="factor con"><span class="ic">!</span><span class="tx">'+p+'</span></div>').join('')
+      :'<p class="hint">Nenhum fator de risco calculável se destacou.</p>')+'</div>'+
+
+    '<h3 class="mt2" style="font-size:11px;letter-spacing:.15em;text-transform:uppercase;color:var(--dim);font-weight:700">O que mais o histórico indica</h3>'+
+    '<div class="mt">'+
+      linhaCtx('Próxima hora ('+p2((hour+1)%24)+':00)',ctx.prox)+
+      ctx.posLoss.map(x=>linhaCtx('Se der Loss aqui → +'+x.k+'h',x)).join('')+
+      linhaCtx('Mesmo horário no dia seguinte',ctx.amanha)+
+      (ctx.turno?linhaCtx('Turno '+ctx.turno.name,ctx.turno):'')+
+      (ctx.semana.length?linhaCtx('Melhor dia da semana: '+ctx.semana[0].name,ctx.semana[0].t):'')+
+    '</div>'+
+    '<div class="mt2 row"><button class="btn gold" id="dwEmit">Emitir sinal para '+
+      (($('#sigDate').value)?fmtDate($('#sigDate').value):'hoje')+'</button>'+
+      '<span class="hint">Probabilidade histórica não é garantia de resultado futuro.</span></div>';
+
+  $('#drawer').classList.add('on');
+  $('#dwEmit').onclick=()=>{
+    addSignal({date:$('#sigDate').value||todayISO(),hour:hour,prob:s.rate,sample:s.n,q:R.q,conf:R.conf.label,
+      kind:'hora',reason:'Win histórico '+f1(s.rate)+' em '+s.n+' dias · Quality '+R.q});
+    closeDrawer();
+  };
+}
+
+/* ═══════════ stepper ═══════════ */
+function stepFix(inp){
+  const w=inp.closest('.stepper'),mn=+w.dataset.min,mx=+w.dataset.max;
+  let v=Math.round(+inp.value);
+  if(!isFinite(v))v=mn;
+  v=Math.min(mx,Math.max(mn,v));
+  inp.value=v;
+  const bs=w.querySelectorAll('button');
+  bs[0].disabled=v<=mn;bs[1].disabled=v>=mx;
+  const su=w.querySelector('.su');
+  if(su&&su.dataset.un)su.textContent=su.dataset.un+(v===1?'':'s')+'+';
+  return v;
+}
+document.querySelectorAll('.stepper').forEach(w=>{
+  const inp=w.querySelector('input'),step=+w.dataset.step;
+  w.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const d=+b.dataset.d;
+    let v=Math.round(+inp.value||0);
+    v=d>0?Math.floor(v/step)*step+step:Math.ceil(v/step)*step-step;
+    inp.value=v;stepFix(inp);render();
+  });
+  inp.oninput=()=>{if(inp.value!=='')stepFix(inp);render();};
+  inp.onblur=()=>{stepFix(inp);render();};
+  stepFix(inp);
+});
+$('#sigDate').onchange=render;
+$('#sigWin').onchange=render;
+
+/* ═══════════ M15 AI ═══════════ */
+function say(who,text){const m=el('div','msg '+who,text);$('#chatLog').appendChild(m);$('#chatLog').scrollTop=1e6;}
+function ask(q){say('me',q);setTimeout(()=>say('ai',analyze(q)),140);}
+function analyze(q){
+  const list=done(),s=tally(list),t=q.toLowerCase();
+  if(!s.n)return 'Ainda não há nenhuma hora completa catalogada no período filtrado. Registre as 4 velas de pelo menos algumas horas na aba <b>Registro</b> e eu passo a responder com base nos seus próprios números.';
+  const warn=n=>n<10?'\n\n⚠ Amostra de '+n+' — pequena demais para confiar. Trate como indício, não como conclusão.':'';
+
+  if(/quality|maior score|melhor sinal/.test(t)){
+    const r=hoursWithQuality(list).sort((a,b)=>b.q-a.q).slice(0,5);
+    return '<b>Horários por Signal Quality Score</b>\n\n'+r.map(h=>'• '+p2(h.hour)+':00 — Quality '+h.q+
+      ' · win '+f1(h.rate)+' · direto '+f1(pct(h.direct,h.n))+' · n='+h.n+' · confiança '+h.conf.label).join('\n')+
+      '\n\nO score combina win, ganho direto, amostra e consistência, e penaliza dependência de Gale 2.'+warn(r[0]?r[0].n:0);
+  }
+  if(/gale 2|gale2/.test(t)){
+    const g2=pct(s.gale2,s.n);
+    const piores=hoursWithQuality(list).filter(h=>h.n>=3).sort((a,b)=>pct(b.gale2,b.n)-pct(a.gale2,a.n)).slice(0,4);
+    return '<b>Dependência de Gale 2</b>\n\nNo período, '+f1(g2)+' das horas ('+s.gale2+') só fecharam positivas na terceira tentativa.\n\n'+
+      'Horários que mais dependem de Gale 2:\n'+piores.map(h=>'• '+p2(h.hour)+':00 — '+f1(pct(h.gale2,h.n))+' (n='+h.n+')').join('\n')+
+      '\n\nQuanto maior essa fatia, maior a exposição para o mesmo resultado.';
+  }
+  if(/turno/.test(t)){
+    const bt=byTurno(list).filter(x=>x.n>0).sort((a,b)=>b.rate-a.rate);
+    if(!bt.length)return 'Sem amostra por turno ainda.';
+    return '<b>Melhor turno: '+bt[0].name+'</b> ('+bt[0].range+') — '+f1(bt[0].rate)+' de win em '+bt[0].n+' horas.\n\n'+
+      bt.map(x=>'• '+x.name+': '+f1(x.rate)+' (loss '+f1(pct(x.loss,x.n))+', n='+x.n+')').join('\n')+warn(bt[0].n);
+  }
+  if(/dia da semana|melhor dia|semana/.test(t)){
+    const r=bestDayTurno(list);
+    if(!r.length)return 'Sem amostra por dia da semana ainda.';
+    const perDay=byWeekdayTurno(list).filter(x=>x.total.n>0).sort((a,b)=>b.total.rate-a.total.rate);
+    return '<b>Melhor combinação: '+r[0].label+'</b> — '+f1(r[0].rate)+' em '+r[0].n+' horas.\n\nPor dia da semana:\n'+
+      perDay.map(x=>'• '+x.name+': '+f1(x.total.rate)+' (n='+x.total.n+')').join('\n')+warn(r[0].n);
+  }
+  if(/proje|amanh|dia seguinte|hora por hora/.test(t)){
+    const bh=byHour(list).filter(h=>h.n>0).sort((a,b)=>a.hour-b.hour);
+    const good=bh.filter(h=>h.rate>=75&&h.n>=5);
+    return '<b>Projeção horário a horário</b> (frequência histórica dos seus registros)\n\n'+
+      bh.map(h=>p2(h.hour)+'h — '+f1(h.rate)+'  n='+h.n+(h.rate>=80&&h.n>=5?'  ✔':'')+(h.rate<50&&h.n>=5?'  ✕':'')).join('\n')+
+      '\n\nHorários que passam em 75% com 5+ amostras: '+(good.length?good.map(h=>p2(h.hour)+'h').join(', '):'nenhum')+'.';
+  }
+  if(/evitar|pior|ruim/.test(t)){
+    const bad=hoursWithQuality(list).filter(h=>h.n>=3).sort((a,b)=>a.q-b.q).slice(0,5);
+    if(!bad.length)return 'Ainda não há horário com amostra mínima de 3 para apontar.';
+    return '<b>Horários com pior desempenho</b>\n\n'+bad.map(h=>'• '+p2(h.hour)+':00 — win '+f1(h.rate)+
+      ', loss '+f1(pct(h.loss,h.n))+', Quality '+h.q+' (n='+h.n+')').join('\n')+warn(bad[0].n);
+  }
+  if(/loss/.test(t)){
+    const st=lossStreaks(list).filter(x=>x.t.n>0),rs=resumeAfterLoss(list).filter(x=>x.t.n>0).sort((a,b)=>b.score-a.score);
+    let out='<b>Comportamento depois de um Loss</b>\n\n';
+    out+=st.length?st.map(x=>'• Depois de '+x.after+' Loss seguido(s): win '+f1(x.t.rate)+', novo Loss em '+
+      f1(pct(x.t.loss,x.t.n))+' dos casos (n='+x.t.n+').').join('\n'):'• Sem sequências contíguas suficientes.';
+    if(rs.length)out+='\n\nMelhor retomada: <b>+'+rs[0].offset+'h</b> após o Loss — win '+f1(rs[0].t.rate)+
+      ', Quality '+rs[0].score+', n='+rs[0].t.n+'.';
+    const pl=planosAposLoss(list).filter(p=>p.testados>0).sort((a,b)=>b.q-a.q)[0];
+    if(pl)out+='\n\nMelhor plano: '+pl.lab.toLowerCase()+' — win '+f1(pl.t.rate)+' em '+pl.testados+' Loss testados (Quality '+pl.q+').';
+    return out;
+  }
+  if(/hor[aá]rio|sinal|operar|melhor/.test(t)){
+    const hrs=hoursWithQuality(list).filter(h=>h.n>=5&&h.rate>=70).sort((a,b)=>b.q-a.q).slice(0,6);
+    if(!hrs.length)return 'Nenhum horário atinge 70% de win com pelo menos 5 dias catalogados. Continue catalogando — com pouca amostra, qualquer percentual alto é ruído.';
+    return '<b>Horários com melhor histórico</b> ('+A().name+')\n\n'+
+      hrs.map(h=>'• '+p2(h.hour)+':00 — win '+f1(h.rate)+', direto '+f1(pct(h.direct,h.n))+
+        ', Quality '+h.q+', confiança '+h.conf.label+' (n='+h.n+')').join('\n')+
+      '\n\nAbra o horário na aba <b>Sinais</b> para ver a análise completa.'+warn(hrs[0].n);
+  }
+  if(/assertividade|desempenho|geral|como est|resumo/.test(t)){
+    return '<b>Desempenho geral</b> — '+s.n+' horas completas\n\n'+
+      '• Win total: '+f1(s.rate)+'\n• Ganho direto: '+f1(pct(s.direct,s.n))+' ('+s.direct+')\n'+
+      '• Gale 1: '+f1(pct(s.gale1,s.n))+' ('+s.gale1+')\n• Gale 2: '+f1(pct(s.gale2,s.n))+' ('+s.gale2+')\n'+
+      '• Loss: '+f1(pct(s.loss,s.n))+' ('+s.loss+')\n\n'+
+      'Repare que '+f1(pct(s.gale1+s.gale2,s.n))+' dos ganhos só vieram com gale — é aí que o risco se concentra.';
+  }
+  return 'Posso responder sobre: melhor horário, maior Quality, melhor turno, dia da semana, horários a evitar, comportamento depois de um Loss, dependência de Gale 2, projeção horário a horário e assertividade geral. Tudo calculado só com os '+s.n+' registros do seu histórico.';
+}
+$('#chatSend').onclick=()=>{const v=$('#chatIn').value.trim();if(!v)return;$('#chatIn').value='';ask(v);};
+$('#chatIn').onkeydown=e=>{if(e.key==='Enter')$('#chatSend').click();};
+$('#chatChips').onclick=e=>{const b=e.target.closest('button');if(b)ask(b.dataset.q);};
+
+/* ═══════════ pares e horários ═══════════ */
+function faixaTexto(hs){
+  if(!hs||!hs.length)return 'fechado';
+  if(hs.length>=24)return '24 horas';
+  const set={};hs.forEach(h=>set[h]=1);
+  let ini=-1;
+  for(let h=0;h<24;h++){if(set[h]&&!set[(h+23)%24]){ini=h;break;}}
+  if(ini>=0){
+    let fim=ini,c=0;
+    while(set[(fim+1)%24]&&c<24){fim=(fim+1)%24;c++;}
+    if(c+1===hs.length)return p2(ini)+':00 – '+p2((fim+1)%24)+':00';
+  }
+  return hs.length+' horários';
+}
+function resumoHoras(a){
+  a=a||A();
+  const m=a.hoursWd||mapaHoras(a.hours);
+  const abertos=agrupaDias(m),fechados=ALLWD.filter(w=>!(m[w]||[]).length);
+  if(!abertos.length)return 'sem horários';
+  if(abertos.length===1&&!fechados.length)return faixaTexto(m[abertos[0].de]);
+  const rot=g=>g.de===g.ate?WD_ABREV[g.de]:WD_ABREV[g.de]+'–'+WD_ABREV[g.ate];
+  let out=abertos.map(g=>rot(g)+' '+faixaTexto(g.hs)).join(' · ');
+  if(fechados.length)out+=' · '+fechados.map(w=>WD_ABREV[w]).join(', ')+' fechado';
+  return out;
+}
+function resumoHorasAntigo(a){
+  const hs=horasDe(a);
+  if(hs.length>=24)return '24 horas';
+  /* detecta faixa contínua, inclusive virando o dia */
+  const set={};hs.forEach(h=>set[h]=1);
+  let ini=-1;
+  for(let h=0;h<24;h++){if(set[h]&&!set[(h+23)%24]){ini=h;break;}}
+  if(ini>=0){
+    let fim=ini,c=0;
+    while(set[(fim+1)%24]&&c<24){fim=(fim+1)%24;c++;}
+    if(c+1===hs.length)return p2(ini)+':00 – '+p2((fim+1)%24)+':00';
+  }
+  return hs.length+' horários';
+}
+function renderAssetSel(){
+  const esc=t=>t.replace(/"/g,'&quot;');
+  $('#assetChips').innerHTML=pares().map(k=>{
+    const a=D.assets[k],hs=a&&a.hoursWd?uniaoWd(normWd(a.hoursWd)).length:24;
+    return '<button class="pchip'+(k===D.active?' on':'')+'" data-par="'+esc(k)+'" title="'+esc(k)+'">'+
+      k+'<span class="hh">'+(hs>=24?'24h':hs+'h')+'</span></button>';
+  }).join('');
+  const on=$('#assetChips .pchip.on');
+  if(on&&on.scrollIntoView)on.scrollIntoView({block:'nearest',inline:'nearest'});
+}
+function trocarPar(k){
+  if(!D.assets[k]||k===D.active)return;
+  D.active=k;
+  if(!A().cursor.date)A().cursor.date=todayISO();
+  A().cursor.hour=horaValida(A().cursor.hour,A().cursor.date);
+  planoSel=null;save();renderAssetSel();render();toast('Par ativo: '+A().name);
+}
+$('#assetChips').onclick=e=>{const b=e.target.closest('[data-par]');if(b)trocarPar(b.dataset.par);};
+
+let parEditKey=null,parWd={};
+function abrirPares(){
+  parEditKey=null;parAdvWd=null;
+  $('#parEdit').style.display='none';
+  $('#parList').style.display='';
+  $('#parFoot').style.display='';
+  $('#parTitle').textContent='Pares e horários';
+  renderParList();$('#ovlPar').classList.add('on');
+  const m=$('#ovlPar .modal');if(m)m.scrollTop=0;
+}
+$('#btnPares').onclick=abrirPares;
+$('#parClose').onclick=()=>$('#ovlPar').classList.remove('on');
+$('#ovlPar').onclick=e=>{if(e.target.id==='ovlPar')$('#ovlPar').classList.remove('on');};
+function renderParList(){
+  $('#parList').innerHTML=pares().map(k=>{
+    const a=D.assets[k],nd=Object.keys(a.days||{}).length;
+    const t=tally(Object.keys(a.days||{}).reduce((acc,d)=>{
+      Object.keys(a.days[d]).forEach(h=>acc.push({result:resultOf(a.days[d][h])}));return acc;},[]));
+    return '<div class="parrow'+(k===D.active?' on':'')+'">'+
+      '<div><div class="nm">'+k+'</div><div class="mt0">'+resumoHoras(a)+' · '+nd+' dia(s) · '+t.n+' hora(s)'+
+      (t.n?' · '+f1(t.rate):'')+'</div></div>'+
+      '<div class="acts2">'+(k===D.active?'<span class="tag t-cyan">ativo</span>':
+        '<button class="btn sm" data-usar="'+k+'">Usar</button>')+
+      '<button class="btn sm" data-edit="'+k+'">Editar</button></div></div>';
+  }).join('');
+}
+$('#parList').onclick=e=>{
+  const u=e.target.closest('[data-usar]');
+  if(u){D.active=u.dataset.usar;if(!A().cursor.date)A().cursor.date=todayISO();
+    A().cursor.hour=horaValida(A().cursor.hour,A().cursor.date);planoSel=null;save();renderAssetSel();render();renderParList();
+    toast('Par ativo: '+A().name);return;}
+  const ed=e.target.closest('[data-edit]');
+  if(ed)abrirEditor(ed.dataset.edit);
+};
+$('#parNovo').onclick=()=>abrirEditor(null);
+function abrirEditor(k){
+  parEditKey=k;
+  const a=k?D.assets[k]:null;
+  $('#parNome').value=a?a.name:'';
+  parWd=a?normWd(a.hoursWd||mapaHoras(a.hours)):mapaHoras(ALLH);
+  parAdvWd=null;preencherSessao();
+  $('#parTitle').textContent=k?'Editar par':'Novo par';
+  $('#parEdit').style.display='';$('#parList').style.display='none';$('#parFoot').style.display='none';
+  $('#parDel').style.display=(k&&pares().length>1)?'':'none';
+  renderParHoras();
+}
+/* ---------- cronograma linha a linha ---------- */
+let parAdvWd=null;
+/* devolve {ini,fim} se as horas formam uma faixa contínua (pode virar o dia) */
+function faixaDe(hs){
+  if(!hs||!hs.length)return null;
+  if(hs.length>=24)return {ini:0,fim:0};
+  const set={};hs.forEach(h=>set[h]=1);
+  let ini=-1;
+  for(let h=0;h<24;h++){if(set[h]&&!set[(h+23)%24]){ini=h;break;}}
+  if(ini<0)return null;
+  let fim=ini,c=0;
+  while(set[(fim+1)%24]&&c<24){fim=(fim+1)%24;c++;}
+  return (c+1===hs.length)?{ini:ini,fim:(fim+1)%24}:null;
+}
+function faixaParaHoras(de,ate){
+  const out=[];let h=de,g=0;
+  while(g<24){out.push(h);if(h===((ate+23)%24))break;h=(h+1)%24;g++;}
+  return out.sort((a,b)=>a-b);
+}
+const optHoras=sel=>ALLH.map(h=>'<option value="'+h+'"'+(h===sel?' selected':'')+'>'+p2(h)+':00</option>').join('');
+/* ---------- sessão contínua da semana ----------
+   Ex.: abre Domingo 23:00 e fecha Sexta 16:00, com janela diária 23:00→16:00.
+   O primeiro dia entra só a partir da hora de abertura; o último, só até a de fechamento. */
+function sessaoSemanal(diaA,horaA,diaF,horaF){
+  /* Sessão contínua de verdade: o mercado abre em (diaA, horaA) e fica aberto
+     ininterruptamente até (diaF, horaF), que é o momento do fechamento e por isso
+     NÃO entra. Os dias do meio ficam com as 24 horas.
+     Ex.: abre Dom 23:00 e fecha Sex 16:00
+          → Dom [23] · Seg a Qui 24h · Sex [00..15] · Sáb fechado */
+  const m={};ALLWD.forEach(w=>m[w]=[]);
+  let w=diaA,h=horaA,g=0;
+  const semanaInteira=(diaA===diaF&&horaA===horaF);
+  while(g<7*24){
+    if(!semanaInteira&&w===diaF&&h===horaF)break;
+    if(m[w].indexOf(h)<0)m[w].push(h);
+    h++;if(h>23){h=0;w=(w+1)%7;}
+    g++;
+  }
+  ALLWD.forEach(x=>m[x].sort((a,b)=>a-b));
+  return m;
+}
+/* agrupa dias seguidos com o mesmo horário: "Seg–Qui 23:00 – 16:00" */
+function agrupaDias(m){
+  const out=[];let ini=null,ant=null;
+  ALLWD.concat([null]).forEach(w=>{
+    const k=w===null?'\u0000':(m[w]||[]).join(',');
+    if(k!==ant){
+      if(ini!==null&&ant!=='')out.push({de:ini,ate:w===null?6:w-1,hs:ant?ant.split(',').map(Number):[]});
+      ini=w;ant=k;
+    }
+  });
+  return out.filter(g=>g.hs.length);
+}
+function descreveSessao(m){
+  const gs=agrupaDias(m);
+  if(!gs.length)return 'Nenhum dia aberto.';
+  return 'Resultado: '+gs.map(g=>(g.de===g.ate?WD_ABREV[g.de]:WD_ABREV[g.de]+'–'+WD_ABREV[g.ate])+
+    ' '+faixaTexto(g.hs)).join(' · ');
+}
+function preencherSessao(){
+  const optD=ALLWD.map(w=>'<option value="'+w+'">'+WD[w]+'</option>').join('');
+  if(!$('#sessDiaA').innerHTML){
+    $('#sessDiaA').innerHTML=optD;$('#sessDiaF').innerHTML=optD;
+    $('#sessHoraA').innerHTML=optHoras();$('#sessHoraF').innerHTML=optHoras();
+    $('#sessDiaA').value='0';$('#sessHoraA').value='23';
+    $('#sessDiaF').value='5';$('#sessHoraF').value='16';
+  }
+  previewSessao();
+}
+function lerSessao(){
+  return sessaoSemanal(+$('#sessDiaA').value,+$('#sessHoraA').value,
+                       +$('#sessDiaF').value,+$('#sessHoraF').value);
+}
+function previewSessao(){$('#sessPrev').textContent=descreveSessao(lerSessao());}
+['#sessDiaA','#sessHoraA','#sessDiaF','#sessHoraF'].forEach(id=>{
+  const e=$(id);if(e)e.onchange=previewSessao;
+});
+$('#sessAplicar').onclick=()=>{
+  parWd=lerSessao();parAdvWd=null;renderParHoras();
+  toast('Cronograma aplicado: '+descreveSessao(parWd).replace('Resultado: ',''));
+};
+
+function renderParHoras(){
+  $('#parCron').innerHTML=ALLWD.map(w=>{
+    const hs=(parWd[w]||[]),aberto=hs.length>0,fx=faixaDe(hs);
+    return '<div class="cronrow'+(aberto?'':' off')+(parAdvWd===w?' editing':'')+'" data-row="'+w+'">'+
+      '<span class="wd">'+WD[w]+'</span>'+
+      '<button class="btn sm tog" data-tog="'+w+'">'+(aberto?'Aberto':'Fechado')+'</button>'+
+      (aberto?(fx?
+        '<span class="rng">de <select class="inp sm" data-de="'+w+'">'+optHoras(fx.ini)+'</select>'+
+        ' até <select class="inp sm" data-ate="'+w+'">'+optHoras(fx.fim)+'</select></span>'
+        :'<span class="rng"><span class="tag t-amber">horários avulsos</span></span>')
+        :'<span class="rng fech">mercado fechado</span>')+
+      '<span class="hr">'+(aberto?(hs.length>=24?'24 horas':hs.length+'h'):'—')+'</span>'+
+      '<span class="rowacts">'+
+        (aberto?'<button class="btn sm" data-copy="'+w+'" title="Copiar este horário para todos os dias">⇊</button>':'')+
+        '<button class="btn sm" data-adv="'+w+'" title="Escolher hora a hora">⋯</button>'+
+      '</span></div>';
+  }).join('');
+  const abertos=ALLWD.filter(w=>(parWd[w]||[]).length).length;
+  $('#parCount').textContent=abertos?abertos+' dia(s) abertos · '+uniaoWd(normWd(parWd)).length+' horários no total':'todos os dias fechados';
+  /* painel avançado hora a hora */
+  const adv=$('#parAdv');
+  if(parAdvWd===null){adv.style.display='none';}
+  else{
+    adv.style.display='';
+    $('#parAdvT').textContent='Horários de '+WD[parAdvWd];
+    const hs=parWd[parAdvWd]||[];
+    $('#parHoras').innerHTML=ALLH.map(h=>'<button class="hchip'+(hs.indexOf(h)>=0?' on':'')+'" data-h="'+h+'">'+p2(h)+'</button>').join('');
+  }
+}
+$('#parCron').onclick=e=>{
+  const tg=e.target.closest('[data-tog]');
+  if(tg){const w=+tg.dataset.tog;
+    parWd[w]=(parWd[w]&&parWd[w].length)?[]:ALLH.slice();
+    renderParHoras();return;}
+  const cp=e.target.closest('[data-copy]');
+  if(cp){const w=+cp.dataset.copy,hs=(parWd[w]||[]).slice();
+    ALLWD.forEach(x=>parWd[x]=hs.slice());
+    renderParHoras();toast('Horário de '+WD[w]+' copiado para todos os dias.');return;}
+  const ad=e.target.closest('[data-adv]');
+  if(ad){const w=+ad.dataset.adv;parAdvWd=(parAdvWd===w?null:w);renderParHoras();return;}
+};
+$('#parCron').onchange=e=>{
+  const de=e.target.closest('[data-de]'),ate=e.target.closest('[data-ate]');
+  if(!de&&!ate)return;
+  const w=+((de||ate).dataset.de||(de||ate).dataset.ate);
+  const row=$('#parCron').querySelector('[data-row="'+w+'"]');
+  const vDe=+row.querySelector('[data-de]').value,vAte=+row.querySelector('[data-ate]').value;
+  parWd[w]=faixaParaHoras(vDe,vAte);
+  renderParHoras();
+};
+$('#parHoras').onclick=e=>{const b=e.target.closest('[data-h]');if(!b||parAdvWd===null)return;
+  const h=+b.dataset.h,arr=parWd[parAdvWd]||(parWd[parAdvWd]=[]),i=arr.indexOf(h);
+  if(i>=0)arr.splice(i,1);else arr.push(h);
+  arr.sort((x,y)=>x-y);renderParHoras();};
+$('#parAdvClose').onclick=()=>{parAdvWd=null;renderParHoras();};
+$('#parEdit').onclick=e=>{
+  const q=e.target.closest('[data-quick]');if(!q)return;
+  const k=q.dataset.quick;
+  if(k==='otc'){ALLWD.forEach(w=>parWd[w]=ALLH.slice());toast('24 horas em todos os dias.');}
+  else if(k==='forex'){
+    $('#sessDiaA').value='0';$('#sessHoraA').value='23';
+    $('#sessDiaF').value='5';$('#sessHoraF').value='16';
+    parWd=lerSessao();previewSessao();
+    toast('Abre domingo 23:00 e fecha sexta 16:00.');}
+  else if(k==='fds'){parWd[0]=[];parWd[6]=[];toast('Sábado e domingo fechados.');}
+  parAdvWd=null;renderParHoras();
+};
+$('#parCancel').onclick=()=>{$('#parEdit').style.display='none';$('#parList').style.display='';
+  $('#parFoot').style.display='';$('#parTitle').textContent='Pares e horários';};
+$('#parSave').onclick=()=>{
+  const nome=$('#parNome').value.trim().toUpperCase();
+  if(!nome){toast('Dê um nome ao par.');return;}
+  const wd=normWd(parWd),horas=uniaoWd(wd);
+  if(!horas.length){toast('Selecione pelo menos um horário em algum dia.');return;}
+  if(parEditKey!==nome&&D.assets[nome]){toast('Já existe um par com esse nome.');return;}
+  if(parEditKey){
+    const a=D.assets[parEditKey];
+    a.name=nome;a.hours=horas;a.hoursWd=wd;
+    if(parEditKey!==nome){
+      D.assets[nome]=a;delete D.assets[parEditKey];
+      if(D.active===parEditKey)D.active=nome;
+      if(typeof lastPush==='object')lastPush={};
+    }
+  }else{
+    const a=novoPar(nome,horas,wd);
+    D.assets[nome]=a;D.active=nome;
+    /* só agora o par está ativo: o próximo dia aberto é calculado com o cronograma dele */
+    const d=proximoDiaAberto(todayISO(),1);
+    a.cursor={date:d,hour:horaValida(horas[0],d)};
+  }
+  A().cursor.hour=horaValida(A().cursor.hour,A().cursor.date);
+  planoSel=null;save();renderAssetSel();render();
+  $('#parCancel').click();renderParList();
+  toast('Par salvo: '+nome);
+};
+$('#parDel').onclick=()=>{
+  const k=parEditKey;if(!k||pares().length<2)return;
+  const nd=Object.keys(D.assets[k].days||{}).length;
+  $('#ovlPar').classList.remove('on');
+  confirmBox('Excluir o par '+k+'?',
+    'Serão apagados <b>'+nd+' dia(s)</b> de catalogação e os sinais desse par. Os outros pares não são afetados. Exporte um backup antes se quiser guardar.',
+    ()=>{delete D.assets[k];if(D.active===k)D.active=pares()[0];
+      A().cursor.hour=horaValida(A().cursor.hour,A().cursor.date);
+      if(typeof lastPush==='object')lastPush={};
+      planoSel=null;save();renderAssetSel();render();toast('Par excluído.');});
+};
+
+/* ═══════════ config / io ═══════════ */
+function applyFilter(){FILTER={from:$('#fFrom').value,to:$('#fTo').value};render();}
+$('#fFrom').onchange=applyFilter;$('#fTo').onchange=applyFilter;
+$('#fClear').onclick=()=>{$('#fFrom').value='';$('#fTo').value='';applyFilter();};
+function doExport(){
+  const blob=new Blob([JSON.stringify(D,null,2)],{type:'application/json'});
+  const a=el('a');a.href=URL.createObjectURL(blob);a.download='m15fx-'+todayISO()+'.json';a.click();
+  toast('Backup exportado.');
+}
+$('#navExport').onclick=doExport;
+$('#navImport').onclick=()=>$('#fileIn').click();
+$('#fileIn').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const o=JSON.parse(r.result);
+    if(!o||(!o.days&&!o.assets))throw 0;
+    const novo=migrate(o),qtd=Object.keys(novo.assets).length;
+    confirmBox('Importar backup',
+      'O arquivo <b>'+f.name+'</b> traz <b>'+qtd+' par(es)</b>. Isso substitui todo o histórico atual, de todos os pares. Exporte antes se quiser guardar o que já existe.',
+      ()=>{D=novo;if(typeof lastPush==='object')lastPush={};save();boot();toast('Backup importado — '+qtd+' par(es).');});
+  }catch(err){toast('Arquivo inválido.');}};
+  r.readAsText(f);e.target.value='';};
+
+/* ═══════════ campos de data ═══════════ */
+function syncDates(){
+  document.querySelectorAll('.dfield').forEach(w=>{
+    const i=w.querySelector('input'),d=w.querySelector('.dv');
+    if(!i||!d)return;
+    if(i.value){
+      const a=i.value.split('-');
+      w.classList.add('has');
+      d.innerHTML='<u>'+a[2]+'</u><em>'+MESES[+a[1]-1]+'</em><s>'+a[0]+'</s>';
+    }else{
+      w.classList.remove('has');
+      d.textContent=i.dataset.ph||'Selecionar';
+    }
+  });
+}
+document.addEventListener('input',e=>{if(e.target.type==='date')syncDates();});
+document.addEventListener('change',e=>{if(e.target.type==='date')syncDates();});
+function tick(){
+  const d=new Date();
+  $('#clock').textContent=fmtDate(todayISO())+' · '+p2(d.getHours())+':'+p2(d.getMinutes());
+}
+setInterval(tick,20000);
+/* ═══════════ nuvem — Realtime Database ═══════════ */
+let FB=null,FBuser=null,dayTs={},sigTs=0,lastPush={},pushTimer=null,refs=[];
+
+function cloudSet(st,txt){
+  const cls='pulse'+(st==='sync'?' on':st==='saving'?' busy':st==='err'?' bad':'');
+  $('#pulse').className=cls;$('#pulse2').className=cls;
+  const lab=txt||({off:'Somente neste aparelho',out:'Conectar à nuvem',sync:'Sincronizado',
+    saving:'Salvando…',err:'Erro na nuvem'})[st]||'Nuvem';
+  $('#statusLab').textContent=({off:'Local',out:'Desconectado',sync:'Online',saving:'Salvando…',err:'Erro'})[st]||'—';
+  $('#syncLab').textContent=window.innerWidth<=700&&st==='sync'?'Online':lab;
+  $('#userName').textContent=FBuser?(FBuser.displayName||FBuser.email||'Conectado'):
+    (st==='off'?'Nuvem não configurada':'Entrar na nuvem');
+  $('#userTier').textContent=FBuser?'Sincronizado':'Sincronização';
+  $('#avatar').textContent=FBuser?((FBuser.displayName||FBuser.email||'?').trim()[0]||'?').toUpperCase():'—';
+  document.body.dataset.cloud=st;
+}
+function cloudInit(){
+  const cfg=window.FB_CONFIG;
+  if(typeof firebase==='undefined'||!cfg||!cfg.databaseURL||!/^AIza/.test(cfg.apiKey||'')){cloudSet('off');return;}
+  try{
+    firebase.initializeApp(cfg);
+    FB={auth:firebase.auth(),db:firebase.database()};
+    if(FB.auth.getRedirectResult)FB.auth.getRedirectResult().catch(e=>{if(e&&e.code)console.warn('nuvem:',e.code);});
+    FB.auth.onAuthStateChanged(u=>{
+      FBuser=u;
+      if(u){cloudSet('sync',u.email||'Sincronizado');cloudAttach(u.uid);syncQueue();}
+      else{cloudDetach();cloudSet('out');}
+      cloudModalRefresh();
+    });
+  }catch(e){console.warn('nuvem:',e);cloudSet('err');}
+}
+function cloudDetach(){refs.forEach(r=>r.off());refs=[];dayTs={};sigTs=0;lastPush={};}
+/* nomes de par viram chave segura para o Realtime Database */
+function fbKey(nome){return nome.replace(/[.#$\[\]\/]/g,'_');}
+function cloudAttach(uid){
+  cloudDetach();
+  const base='usuarios/'+uid;
+  /* migração única do formato antigo (um par só) */
+  Promise.all([FB.db.ref(base+'/dias').once('value'),FB.db.ref(base+'/ativo').once('value')]).then(res=>{
+    const sn=res[0],v=sn.val();if(!v)return;
+    /* o destino é o par de mesmo nome do formato antigo; só cai no atual se não existir */
+    const nomeAntigo=res[1].val();
+    const alvo=(nomeAntigo&&D.assets[nomeAntigo])?D.assets[nomeAntigo]:A();
+    Object.keys(v).forEach(date=>{
+      const no=v[date];if(!no||!no.j)return;
+      let obj;try{obj=JSON.parse(no.j);}catch(e){return;}
+      alvo.days[date]=alvo.days[date]||{};
+      Object.keys(obj).forEach(h=>{if(obj[h]&&!alvo.days[date][h])alvo.days[date][h]=obj[h];});
+    });
+    save(true);render();
+    FB.db.ref().update({[base+'/dias']:null,[base+'/sinais']:null,[base+'/ativo']:null})
+      .then(()=>{lastPush={};syncQueue();toast('Dados da nuvem migrados para o par '+alvo.name+'.');})
+      .catch(()=>{});
+  }).catch(()=>{});
+
+  const rPares=FB.db.ref(base+'/pares');
+  rPares.on('child_added',applyPar);rPares.on('child_changed',applyPar);
+  refs=[rPares];
+}
+function applyPar(sn){
+  const v=sn.val();if(!v)return;
+  const nome=v.nome||sn.key;
+  let a=D.assets[nome];
+  let cron=null;
+  if(v.cron){try{cron=normWd(JSON.parse(v.cron));}catch(e){cron=null;}}
+  if(!a){a=novoPar(nome,v.horas||ALLH,cron||undefined);D.assets[nome]=a;}
+  if(cron&&uniaoWd(cron).length){a.hoursWd=cron;a.hours=uniaoWd(cron);}
+  else if(v.horas&&v.horas.length&&!a.hoursWd){a.hours=v.horas.slice();a.hoursWd=mapaHoras(a.hours);}
+  let mudou=false;
+  if(v.dias){
+    Object.keys(v.dias).forEach(date=>{
+      const no=v.dias[date];if(!no||!no.j)return;
+      const tk=nome+'|'+date;
+      if(dayTs[tk]&&no.ts<=dayTs[tk])return;
+      let obj;try{obj=JSON.parse(no.j);}catch(e){return;}
+      a.days[date]=a.days[date]||{};
+      Object.keys(obj).forEach(h=>{if(obj[h])a.days[date][h]=obj[h];});
+      dayTs[tk]=no.ts;lastPush[tk]=no.j;mudou=true;
+    });
+  }
+  if(v.sinais&&v.sinais.j){
+    const tk=nome+'|__sig';
+    if(!dayTs[tk]||v.sinais.ts>dayTs[tk]){
+      try{a.signals=JSON.parse(v.sinais.j)||[];dayTs[tk]=v.sinais.ts;lastPush[tk]=v.sinais.j;mudou=true;}catch(e){}
+    }
+  }
+  if(mudou||!D.assets[nome]){save(true);renderAssetSel();render();}
+}
+function syncQueue(){
+  if(!FB||!FBuser)return;
+  clearTimeout(pushTimer);
+  pushTimer=setTimeout(cloudPush,900);
+}
+function cloudPush(){
+  if(!FB||!FBuser)return;
+  const base='usuarios/'+FBuser.uid,upd={},now=Date.now(),vivos={};
+  pares().forEach(nome=>{
+    const a=D.assets[nome],pk=base+'/pares/'+fbKey(nome);
+    const cfgTxt=nome+':'+JSON.stringify(a.hoursWd||mapaHoras(a.hours));
+    if(lastPush['cfg|'+nome]!==cfgTxt){
+      upd[pk+'/nome']=nome;upd[pk+'/horas']=a.hours.slice();
+      upd[pk+'/cron']=JSON.stringify(a.hoursWd||mapaHoras(a.hours));
+      lastPush['cfg|'+nome]=cfgTxt;
+    }
+    Object.keys(a.days).forEach(date=>{
+      const tk=nome+'|'+date,j=JSON.stringify(a.days[date]);
+      vivos[tk]=1;
+      if(lastPush[tk]===j)return;
+      upd[pk+'/dias/'+date]={j:j,ts:now};
+      lastPush[tk]=j;dayTs[tk]=now;
+    });
+    const js=JSON.stringify(a.signals||[]),sk=nome+'|__sig';
+    vivos[sk]=1;
+    if(lastPush[sk]!==js){upd[pk+'/sinais']={j:js,ts:now};lastPush[sk]=js;dayTs[sk]=now;}
+  });
+  /* dias e pares removidos localmente saem da nuvem */
+  Object.keys(lastPush).forEach(k=>{
+    if(k.indexOf('cfg|')===0){
+      const nome=k.slice(4);
+      if(!D.assets[nome]){upd[base+'/pares/'+fbKey(nome)]=null;delete lastPush[k];}
+      return;
+    }
+    if(vivos[k])return;
+    const i=k.lastIndexOf('|');if(i<0)return;
+    const nome=k.slice(0,i),date=k.slice(i+1);
+    if(date==='__sig')return;
+    if(D.assets[nome])upd[base+'/pares/'+fbKey(nome)+'/dias/'+date]=null;
+    delete lastPush[k];delete dayTs[k];
+  });
+  if(!Object.keys(upd).length)return;
+  cloudSet('saving');
+  FB.db.ref().update(upd)
+    .then(()=>cloudSet('sync',FBuser.email||'Sincronizado'))
+    .catch(e=>{console.warn('nuvem:',e);cloudSet('err');});
+}
+function cloudModalRefresh(){
+  const on=!!FBuser,st=document.body.dataset.cloud||'off';
+  $('#cForm').style.display=on?'none':'flex';
+  $('#cIn').style.display=on?'none':'';
+  $('#cNew').style.display=on?'none':'';
+  $('#cOut').style.display=on?'':'none';
+  $('#cErr').textContent='';
+  if(st==='off'){
+    $('#cTitle').textContent='Nuvem não configurada';
+    $('#cText').innerHTML='Para sincronizar celular e computador, preencha o bloco <b>FB_CONFIG</b> no topo deste arquivo com os dados do seu projeto Firebase, incluindo a <b>databaseURL</b> do Realtime Database. Sem isso o terminal funciona normalmente, só que os dados ficam apenas neste aparelho.';
+  }else if(on){
+    $('#cTitle').textContent='Sincronizado';
+    $('#cText').innerHTML='Conectado como <b>'+(FBuser.email||FBuser.displayName||'—')+'</b>. Tudo que você catalogar aqui aparece nos outros aparelhos com o mesmo login.';
+  }else{
+    $('#cTitle').textContent='Sincronizar entre aparelhos';
+    $('#cText').textContent='Entre com a mesma conta no computador e no celular. O que você catalogar num aparelho aparece no outro em segundos.';
+  }
+}
+function cloudErr(e){
+  const m={'auth/invalid-email':'E-mail inválido.','auth/user-not-found':'Não existe conta com esse e-mail — use "Criar conta".',
+    'auth/wrong-password':'Senha incorreta.','auth/invalid-credential':'E-mail ou senha incorretos.',
+    'auth/email-already-in-use':'Já existe conta com esse e-mail — use "Entrar".','auth/weak-password':'A senha precisa de pelo menos 6 caracteres.',
+    'auth/network-request-failed':'Sem conexão com a internet.','auth/operation-not-allowed':'Ative o método de login no console do Firebase.',
+    'auth/unauthorized-domain':'Adicione este endereço em Authentication → Settings → Authorized domains.',
+    'auth/popup-closed-by-user':'A janela do Google foi fechada antes de concluir.',
+    'auth/account-exists-with-different-credential':'Esse e-mail já tem conta criada pelo outro método.'};
+  $('#cErr').textContent=m[e.code]||e.message;
+}
+function openCloud(){cloudModalRefresh();$('#ovlCloud').classList.add('on');}
+$('#btnCloud').onclick=openCloud;
+$('#btnCloud2').onclick=openCloud;
+$('#cClose').onclick=()=>$('#ovlCloud').classList.remove('on');
+$('#ovlCloud').onclick=e=>{if(e.target.id==='ovlCloud')$('#ovlCloud').classList.remove('on');};
+$('#cGoogle').onclick=()=>{
+  if(!FB){$('#cErr').textContent='Nuvem não configurada neste arquivo.';return;}
+  const prov=new firebase.auth.GoogleAuthProvider();
+  $('#cErr').textContent='Abrindo o Google…';
+  FB.auth.signInWithPopup(prov)
+    .then(()=>{$('#ovlCloud').classList.remove('on');toast('Conectado — sincronizando.');})
+    .catch(e=>{
+      if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/cancelled-popup-request'].indexOf(e.code)>=0){
+        try{FB.auth.signInWithRedirect(prov);return;}catch(x){}
+      }
+      cloudErr(e);
+    });
+};
+$('#cIn').onclick=()=>{
+  if(!FB){$('#cErr').textContent='Nuvem não configurada neste arquivo.';return;}
+  $('#cErr').textContent='Entrando…';
+  FB.auth.signInWithEmailAndPassword($('#cEmail').value.trim(),$('#cPass').value)
+    .then(()=>{$('#ovlCloud').classList.remove('on');toast('Conectado — sincronizando.');})
+    .catch(cloudErr);
+};
+$('#cNew').onclick=()=>{
+  if(!FB){$('#cErr').textContent='Nuvem não configurada neste arquivo.';return;}
+  $('#cErr').textContent='Criando conta…';
+  FB.auth.createUserWithEmailAndPassword($('#cEmail').value.trim(),$('#cPass').value)
+    .then(()=>{$('#ovlCloud').classList.remove('on');toast('Conta criada — sincronizando.');})
+    .catch(cloudErr);
+};
+$('#cOut').onclick=()=>{
+  $('#ovlCloud').classList.remove('on');
+  confirmBox('Sair da nuvem',
+    'Os dados continuam salvos neste aparelho e na nuvem. Você só para de sincronizar até entrar de novo.',
+    ()=>{FB.auth.signOut();toast('Desconectado da nuvem.');});
+};
+
+/* ═══════════ render / boot ═══════════ */
+function render(){
+  if(VIEW==='dash')renderDash();
+  else if(VIEW==='registro')renderRegistro();
+  else if(VIEW==='hist')renderHist();
+  else if(VIEW==='quant')renderQuant();
+  else if(VIEW==='sinais')renderSinais();
+  else if(VIEW==='loss'){renderSinais();renderLoss();}
+  syncDates();
+}
+function boot(){
+  if(!A().cursor.date)A().cursor.date=todayISO();
+  A().cursor.hour=horaValida(A().cursor.hour,A().cursor.date);
+  renderAssetSel();
+  if(!$('#sigDate').value)$('#sigDate').value=addDays(todayISO(),1);
+  $('#chatLog').innerHTML='';
+  say('ai','Sou o M15 AI. Analiso apenas os dados que você mesmo catalogou — não busco nada fora daqui, não conheço o mercado ao vivo e não dou recomendação de investimento.\n\nPergunte, ou use um dos atalhos ao lado.');
+  tick();
+  render();
+}
+load();boot();cloudInit();cloudModalRefresh();
+if(memoryOnly)toast('Sem armazenamento local nesta janela — use Exportar para não perder os dados.');
+</script>
+</body>
+</html>
