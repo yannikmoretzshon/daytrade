@@ -14561,12 +14561,13 @@ function aqMestre(o){
 /* as seções abaixo do cartão mestre: todas com o mesmo cabeçalho */
 function aqSec(o){
   return '<section class="aq2s'+(o.cls?' '+o.cls:'')+'">'+
-    '<header class="aq2s-h"><span class="aq2s-ey"><i></i>'+o.ey+'<i></i></span><b>'+o.tit+'</b>'+(o.hint?'<small>'+o.hint+'</small>':'')+(o.acao?'<div class="aq2s-ac">'+o.acao+'</div>':'')+'</header>'+
+    '<header class="aq2s-h"><span class="aq2s-ey"><i></i>'+o.ey+'<i></i></span><b>'+o.tit+'</b>'+(o.acao?'<div class="aq2s-ac">'+o.acao+'</div>':'')+'</header>'+
     '<div class="aq2s-b">'+o.body+'</div></section>';
 }
 /* 2 · a leitura rápida */
 function aqLeituraSec(itens,tit){
-  itens=itens.filter(Boolean);if(!itens.length)return '';
+  /* retirada a pedido: a página fala pelos números, sem frases explicativas */
+  return '';
   return aqSec({ey:'Leitura rápida',tit:tit,cls:'aq2-lei',
     body:'<ul class="aq2-li">'+itens.map(x=>'<li class="'+x[0]+'"><u></u><span>'+x[1]+'</span></li>').join('')+'</ul>'});
 }
@@ -14608,8 +14609,7 @@ function aqMapa(hrs,t){
   }else grade='<div class="aq2-mapa grd">'+ord.map(cel).join('')+'</div>';
   const lg=(k,rot)=>'<span class="'+k+(cont[k]?'':' z')+'"><u></u><b>'+cont[k]+'</b>'+rot+'</span>';
   return '<div class="aq2-mleg">'+lg('ok','nunca perderam')+lg('up','acima de '+(t.n?aqPc(med):'—'))+lg('dn','abaixo de '+(t.n?aqPc(med):'—'))+lg('nd','sem ciclos')+
-    '<span class="sm"><u></u>menos de 3 ciclos</span></div>'+grade+
-    '<p class="aq2-mnota">A régua é o acerto do próprio recorte ('+(t.n?aqPc(med):'—')+', '+escNome().toLowerCase()+'). Toque num horário para ver a análise completa dele.</p>';
+    '<span class="sm"><u></u>menos de 3 ciclos</span></div>'+grade;
 }
 /* 5 · uma linha por horário, no placar do Histórico */
 const AQ_ORD=[['melhor','Melhor → pior'],['pior','Pior → melhor'],['hour','Por horário']];
